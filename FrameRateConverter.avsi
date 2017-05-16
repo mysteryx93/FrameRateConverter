@@ -50,7 +50,7 @@
 ## @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 ##
 ## @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-##                 0 to disable artifact masking. (Default = 120)
+##                 0 to disable artifact masking. (Default = 140)
 ##
 ## @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 ##
@@ -81,7 +81,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
     BlkSize     = Default(BlkSize, C.Width>2000||C.Height>1200 ? 32 : C.Width>720||C.Height>480 ? 16 : 8)
     BlkSizeV    = Default(BlkSizeV, BlkSize)
-    MaskTrh     = Default(MaskTrh, 120)
+    MaskTrh     = Default(MaskTrh, 140)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
     BlendOver   = Default(BlendOver, 50)

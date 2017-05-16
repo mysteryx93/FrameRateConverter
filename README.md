@@ -40,7 +40,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2, GRunT, rgtools (default 
 @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 
 @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-                0 to disable artifact masking. (Default = 120)
+                0 to disable artifact masking. (Default = 140)
 
 @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 

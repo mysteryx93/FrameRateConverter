@@ -15,7 +15,7 @@ Increases the frame rate with interpolation and fine artifact removal.
 
 FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver)
 
-YV12/YV24/Y8/YUY2
+YV12/YV24/Y8/YUY2  
 Requires: FrameRateConverter.dll, MaskTools2, MvTools2, GRunT, rgtools (default prefilter)
 
 @ NewNum      - The new framerate numerator (if FrameDouble = false, default = 60)

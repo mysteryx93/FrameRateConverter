@@ -80,7 +80,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
     BlkSize     = Default(BlkSize, C.Width>2000||C.Height>1200 ? 32 : C.Width>720||C.Height>480 ? 16 : 8)
-	BlkSizeV    = Default(BlkSizeV, BlkSize)
+    BlkSizeV    = Default(BlkSizeV, BlkSize)
     MaskTrh     = Default(MaskTrh, 120)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
@@ -95,7 +95,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     Assert(MaskTrh >= 0 && MaskTrh <= 255, String(MaskTrh, "FrameRateConverter: MaskTrh must be between 0 and 255 {%.f}"))
     Assert(MaskOcc >= 0 && MaskOcc <= 255, String(MaskOcc, "FrameRateConverter: MaskOcc must be between 0 and 255 {%.f}"))
-	Assert(SkipTrh < MaskTrh, "FrameRateConverter: SkipTrh must be lower (stronger) than MaskTrh")
+    Assert(SkipTrh < MaskTrh, "FrameRateConverter: SkipTrh must be lower (stronger) than MaskTrh")
     Assert(BlendOver >= 0 && BlendOver <= 255, String(BlendOver, "FrameRateConverter: BlendOver must be between 0 and 255 {%.f}"))
     Assert(SkipOver >= 0 && SkipOver <= 255, String(SkipOver, "FrameRateConverter: SkipOver must be between 0 and 255 {%.f}"))
     Assert(BlendOver==0 || SkipOver==0 || SkipOver > BlendOver, "FrameRateConverter: SkipOver must be greater than BlendOver")
@@ -105,15 +105,15 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     BHard = C.ChangeFps(NewNum, NewDen)
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
-	blk = Max(BlkSize, BlkSizeV)
-	MaskTrh = MaskTrh + (blk<=4 ? -40 : blk<=6 ? -30 : blk<=8 ? -20 : blk<=12 ? -10 : blk<=16 ? 0 : 
-	\         blk<=24 ? 10 : blk<=32 ? 20 : blk<=48 ? 28 : 35)
-	SkipTrh = SkipTrh + (blk<=4 ? -33 : blk<=6 ? -26 : blk<=8 ? -18 : blk<=12 ? -9 : blk<=16 ? 0 : 
-	\         blk<=24 ? 8 : blk<=32 ? 16 : blk<=48 ? 23 : 30)
-	MaskTrh = Max(Min(MaskTrh, 255), 0)
-	SkipTrh = Max(Min(SkipTrh, 255), 0)
-	gam = blk<=4 ? .60 : blk<=6 ? .58 : blk<=8 ? .56 : blk<=12 ? .54 : blk<=16 ? .50 : 
-	\         blk<=24 ? .44 : blk<=32 ? .36 : blk<=48 ? .26 : .14
+    blk = Max(BlkSize, BlkSizeV)
+    MaskTrh = MaskTrh + (blk<=4 ? -40 : blk<=6 ? -30 : blk<=8 ? -20 : blk<=12 ? -10 : blk<=16 ? 0 : 
+    \         blk<=24 ? 10 : blk<=32 ? 20 : blk<=48 ? 28 : 35)
+    SkipTrh = SkipTrh + (blk<=4 ? -33 : blk<=6 ? -26 : blk<=8 ? -18 : blk<=12 ? -9 : blk<=16 ? 0 : 
+    \         blk<=24 ? 8 : blk<=32 ? 16 : blk<=48 ? 23 : 30)
+    MaskTrh = Max(Min(MaskTrh, 255), 0)
+    SkipTrh = Max(Min(SkipTrh, 255), 0)
+    gam = blk<=4 ? .60 : blk<=6 ? .58 : blk<=8 ? .56 : blk<=12 ? .54 : blk<=16 ? .50 : 
+    \         blk<=24 ? .44 : blk<=32 ? .36 : blk<=48 ? .26 : .14
 
     ## jm_fps interpolation
     superfilt = MSuper(prefilter, hpad=16, vpad=16) # all levels for MAnalyse
@@ -135,11 +135,11 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EMocc = MaskOcc > 0 ? C.ConvertToY8().MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255)
     \                     .mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
     EM = MaskOcc > 0 ? EM.Overlay(EMocc, opacity=.4, mode="lighten", pc_range=true) : EM
-	# Mask: Stripes
+    # Mask: Stripes
     EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=140, strf=70, trh=22)
     EM = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
-	# Last mask frame is white. Replace with previous frame.
-	EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
+    # Last mask frame is white. Replace with previous frame.
+    EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
     OutRaw = EM
     
     ## Mask processing

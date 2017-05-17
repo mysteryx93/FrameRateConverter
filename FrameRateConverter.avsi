@@ -32,7 +32,7 @@
 ##
 ## @ NewDen      - The new framerate denominator (if FrameDouble = false, default = 1)
 ##
-## @ Preset      - The speed/quality preset [slow|normal|fast]. (default=normal)
+## @ Preset      - The speed/quality preset [slower|slow|normal|fast]. (default=normal)
 ##
 ## @ BlkSize     - The block size. Latest MvTools2.dll version from Pinterf supports 6, 8, 12, 16, 24, 32, 48 and 64.
 ##                 (default = Width>2000||Height>1200 ? 32 : Width>720||C.Height>480 ? 16 : 8)
@@ -67,13 +67,12 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 \ string "Output", bool "Debug", clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver")
 {
     Preset = Default(Preset, "normal")
-    P_SLOW = 0  P_NORMAL = 1  P_FAST = 2
-    Pset = Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
-    Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slow, normal or fast {'" + Preset + "'}")
+    P_SLOWER = 0  P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
+    Pset = Preset == "slower" ? P_SLOWER : Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
+    Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slower, slow, normal or fast {'" + Preset + "'}")
     Output = Default(Output, "auto")
     O_AUTO = 0  O_FLOW = 1  O_NONE = 2  O_MASK = 3  O_SKIP = 4  O_RAW = 5  O_OVER = 6
-    OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "none" ? O_NONE : Output == "mask" ? O_MASK :
-    \  Output == "skip" ? O_SKIP : Output == "raw" ? O_RAW : Output == "over" ? O_OVER : -1
+    OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "none" ? O_NONE : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "raw" ? O_RAW : Output == "over" ? O_OVER : -1
     Assert(OPut != -1, "FrameRateConverter: 'Output' not one of (auto|flow|none|mask|skip|raw|over) {'" + Output + "'}")
     
     FrameDouble = Default(FrameDouble, Defined(NewNum) ? false : true)
@@ -91,7 +90,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Debug       = Default(Debug, false)
     OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW  # Whether output has altered frame rate
     Recalculate = PSET <= P_NORMAL
-    DCT         = PSET == P_SLOW ? 1 : 0
+    Dct         = PSET <= P_SLOW ? 1 : 0
+    DctDiff     = PSET == P_SLOWER
 
     Assert(MaskTrh >= 0 && MaskTrh <= 255, String(MaskTrh, "FrameRateConverter: MaskTrh must be between 0 and 255 {%.f}"))
     Assert(MaskOcc >= 0 && MaskOcc <= 255, String(MaskOcc, "FrameRateConverter: MaskOcc must be between 0 and 255 {%.f}"))
@@ -106,35 +106,58 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
     blk = Max(BlkSize, BlkSizeV)
-    MaskTrh = MaskTrh + (blk<=4 ? -40 : blk<=6 ? -30 : blk<=8 ? -20 : blk<=12 ? -10 : blk<=16 ? 0 : 
-    \         blk<=24 ? 10 : blk<=32 ? 20 : blk<=48 ? 28 : 35)
-    SkipTrh = SkipTrh + (blk<=4 ? -33 : blk<=6 ? -26 : blk<=8 ? -18 : blk<=12 ? -9 : blk<=16 ? 0 : 
-    \         blk<=24 ? 8 : blk<=32 ? 16 : blk<=48 ? 23 : 30)
+    MaskTrh = MaskTrh + (blk<=4 ? -40 : blk<=6 ? -30 : blk<=8 ? -20 : blk<=12 ? -10 : blk<=16 ? 0 : blk<=24 ? 10 : blk<=32 ? 20 : blk<=48 ? 28 : 35)
+    SkipTrh = SkipTrh + (blk<=4 ? -33 : blk<=6 ? -26 : blk<=8 ? -18 : blk<=12 ? -9 : blk<=16 ? 0 : blk<=24 ? 8 : blk<=32 ? 16 : blk<=48 ? 23 : 30)
     MaskTrh = Max(Min(MaskTrh, 255), 0)
     SkipTrh = Max(Min(SkipTrh, 255), 0)
-    gam = blk<=4 ? .60 : blk<=6 ? .58 : blk<=8 ? .56 : blk<=12 ? .54 : blk<=16 ? .50 : 
-    \         blk<=24 ? .44 : blk<=32 ? .36 : blk<=48 ? .26 : .14
+    gam = blk<=4 ? .60 : blk<=6 ? .58 : blk<=8 ? .56 : blk<=12 ? .54 : blk<=16 ? .50 : blk<=24 ? .44 : blk<=32 ? .36 : blk<=48 ? .26 : .14
 
     ## jm_fps interpolation
     superfilt = MSuper(prefilter, hpad=16, vpad=16) # all levels for MAnalyse
     super = CalcPrefilter ? MSuper(C, hpad=16, vpad=16, levels=1) : superfilt # one level is enough for MRecalculate
-    bak = MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=DCT)
-    fwd = MAnalyse(superfilt, isb=false, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, search=3, dct=DCT)
+    bak = MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=Dct)
+    fwd = MAnalyse(superfilt, isb=false, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, search=3, dct=Dct)
     fwd = Recalculate ? MRecalculate(super, fwd, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : fwd
     bak = Recalculate ? MRecalculate(super, bak, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : bak
     Flow = MFlowFps(C, super, bak, fwd, num=NewNum, den=NewDen, blend=false, ml=200, mask=2, thSCD2=255)
 
     ## "EM" - error or artifact mask
     # Mask: SAD
-    EM = MaskTrh > 0 ? C.ConvertToY8().MMask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=255) : 
-    \                  BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EM = MaskTrh > 0 ? C.ConvertToY8().MMask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=255) : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
     # Mask: Temporal blending
     EMfwd = MaskTrh > 0 ? C.ConvertToY8().MMask(fwd, ml=255, kind=1, gamma=1/gam, thSCD2=255) : EM
     EM = MaskTrh > 0 ? EM.Overlay(EMfwd, opacity=.6, mode="lighten", pc_range=true) : EM
     # Mask: Occlusion
-    EMocc = MaskOcc > 0 ? C.ConvertToY8().MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255)
-    \                     .mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EMocc = MaskOcc > 0 ? C.ConvertToY8().MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255).mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
     EM = MaskOcc > 0 ? EM.Overlay(EMocc, opacity=.4, mode="lighten", pc_range=true) : EM
+
+
+    ## For Preset="slower", calculate again with DCT=0, and substract DCT=0 mask from DCT=1 mask to restore from DCT=0 the areas that look better
+    bak2 = MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=0)
+    fwd2 = MAnalyse(superfilt, isb=false, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, search=3, dct=0)
+    fwd2 = Recalculate ? MRecalculate(super, fwd2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : fwd
+    bak2 = Recalculate ? MRecalculate(super, bak2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : bak
+    Flow2 = MFlowFps(C, super, bak2, fwd2, num=NewNum, den=NewDen, blend=false, ml=200, mask=2, thSCD2=255)
+    # Get raw mask again
+    EM2 = MaskTrh > 0 ? C.ConvertToY8().MMask(bak2, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=255) : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EMfwd2 = MaskTrh > 0 ? C.ConvertToY8().MMask(fwd2, ml=255, kind=1, gamma=1/gam, thSCD2=255) : EM2
+    EM2 = MaskTrh > 0 ? EM2.Overlay(EMfwd2, opacity=.6, mode="lighten", pc_range=true) : EM2
+    EMocc2 = MaskOcc > 0 ? C.ConvertToY8().MMask(bak2, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255).mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EM2 = MaskOcc > 0 ? EM2.Overlay(EMocc2, opacity=.4, mode="lighten", pc_range=true) : EM2
+    # Get difference mask between two versions
+    EMdiff = mt_lutxy(EM, EM2, "x y -")
+    \       .BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSize)*4)
+    \       .mt_expand(mode= mt_circle(zero=true, radius=2))
+    \       .mt_binarize(60)
+    \       .FRC_GaussianBlur2(1.2)
+    \       .BicubicResize(C.Width, C.Height)
+    return EMdiff
+    # Apply mask to Flow / EM
+    EMdiff = EMdiff.ChangeFPS(NewNum, NewDen)
+    Flow = DctDiff ? mt_merge(Flow, Flow2, EMdiff, luma=true, chroma="process") : Flow
+    EM = DctDiff ? mt_merge(EM, EM2, EMdiff, luma=true, chroma="process") : EM
+
+
     # Mask: Stripes
     EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=140, strf=70, trh=22)
     EM = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
@@ -192,4 +215,31 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \           (SkipOver > 0 && Skip >= SkipOver ? " - Skip" : ""), lsp=0)""",
     \           args = "EMskip,EM,ShowRaw,BlkSize,SkipOver,BlendOver", Local=true) : R
     return R
+}
+
+
+##################################
+### Gaussian blur - simplified version. 
+##
+## @ rad - blur radius
+##
+function FRC_GaussianBlur2(clip C, float rad)
+{
+    rad = Max(0.0, rad)
+
+    w0 = C.Width
+    h0 = C.Height
+    w1 = Round(w0/rad)
+    h1 = Round(h0/rad) 
+
+    B = C.BilinearResize(
+    \         Min(Max(4, w1 + (w1 % 2)), w0), 
+    \         Min(Max(4, h1 + (h1 % 2)), h0))
+
+    B = B.Blur(1.0).Blur(1.0)
+    
+    return (rad<0.01) ? C 
+    \    : (rad<1.2)  ? C.Blur(rad)
+    \    : (B.Width>8 && B.Height>8) ? B.GaussResize(w0, h0)
+    \    : B.BilinearResize(w0, h0)
 }

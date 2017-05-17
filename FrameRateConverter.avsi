@@ -151,7 +151,6 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .mt_binarize(60)
     \       .FRC_GaussianBlur2(1.2)
     \       .BicubicResize(C.Width, C.Height)
-    return EMdiff
     # Apply mask to Flow / EM
     EMdiff = EMdiff.ChangeFPS(NewNum, NewDen)
     Flow = DctDiff ? mt_merge(Flow, Flow2, EMdiff, luma=true, chroma="process") : Flow

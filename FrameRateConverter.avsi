@@ -91,8 +91,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
     BlkSize     = Default(BlkSize, C.Width>2000||C.Height>1200 ? 32 : C.Width>720||C.Height>480 ? 16 : 8)
     BlkSizeV    = Default(BlkSizeV, BlkSize)
-	DiffBlkSize = Default(DiffBlkSize, 0)
-	DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)
+    DiffBlkSize = Default(DiffBlkSize, 0)
+    DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)
     MaskTrh     = Default(MaskTrh, 150)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
@@ -105,10 +105,10 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Recalculate = PSET <= P_NORMAL
     Dct         = PSET <= P_SLOW ? 1 : 0
     CalcDiff    = Pset == P_SLOWER || DiffBlkSize > 0 || DiffBlkSizeV > 0
-	DiffBlkSize = DiffBlkSize == 0 ? BlkSize : DiffBlkSize
-	DiffBlkSizeV= DiffBlkSizeV == 0 ? BlkSizeV : DiffBlkSizeV
-	MaskTrh2    = MaskTrh
-	SkipTrh2    = SkipTrh
+    DiffBlkSize = DiffBlkSize == 0 ? BlkSize : DiffBlkSize
+    DiffBlkSizeV= DiffBlkSizeV == 0 ? BlkSizeV : DiffBlkSizeV
+    MaskTrh2    = MaskTrh
+    SkipTrh2    = SkipTrh
 
     Assert(MaskTrh >= 0 && MaskTrh <= 255, String(MaskTrh, "FrameRateConverter: MaskTrh must be between 0 and 255 {%.f}"))
     Assert(MaskOcc >= 0 && MaskOcc <= 255, String(MaskOcc, "FrameRateConverter: MaskOcc must be between 0 and 255 {%.f}"))
@@ -116,6 +116,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Assert(BlendOver >= 0 && BlendOver <= 255, String(BlendOver, "FrameRateConverter: BlendOver must be between 0 and 255 {%.f}"))
     Assert(SkipOver >= 0 && SkipOver <= 255, String(SkipOver, "FrameRateConverter: SkipOver must be between 0 and 255 {%.f}"))
     Assert(BlendOver==0 || SkipOver==0 || SkipOver > BlendOver, "FrameRateConverter: SkipOver must be greater than BlendOver")
+    Assert(CalcDiff || OPut!=O_DIFF, "FrameRateConverter: You can only use Output='Diff' when using Preset='slower' or DiffBlkSize")
 
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
@@ -128,9 +129,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     MaskTrh = Max(Min(MaskTrh, 255), 0)
     SkipTrh = Max(Min(SkipTrh, 255), 0)
     gam = blk<=4 ? .60 : blk<=6 ? .58 : blk<=8 ? .56 : blk<=12 ? .54 : blk<=16 ? .50 : blk<=24 ? .44 : blk<=32 ? .36 : blk<=48 ? .26 : .14
-	# for CalcDiff
+    # for CalcDiff
     blk2 = Max(DiffBlkSize, DiffBlkSizeV)
-	MaskTrh2 = MaskTrh2 + (blk2<=4 ? -40 : blk2<=6 ? -30 : blk2<=8 ? -20 : blk2<=12 ? -10 : blk2<=16 ? 0 : blk2<=24 ? 10 : blk2<=32 ? 20 : blk2<=48 ? 28 : 35)
+    MaskTrh2 = MaskTrh2 + (blk2<=4 ? -40 : blk2<=6 ? -30 : blk2<=8 ? -20 : blk2<=12 ? -10 : blk2<=16 ? 0 : blk2<=24 ? 10 : blk2<=32 ? 20 : blk2<=48 ? 28 : 35)
     SkipTrh2 = SkipTrh2 + (blk2<=4 ? -33 : blk2<=6 ? -26 : blk2<=8 ? -18 : blk2<=12 ? -9 : blk2<=16 ? 0 : blk2<=24 ? 8 : blk2<=32 ? 16 : blk2<=48 ? 23 : 30)
     MaskTrh2 = Max(Min(MaskTrh2, 255), 0)
     SkipTrh2 = Max(Min(SkipTrh2, 255), 0)

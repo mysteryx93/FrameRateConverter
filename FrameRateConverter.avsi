@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 17-May-2017
+# Version: 18-May-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -32,7 +32,7 @@
 ##
 ## @ NewDen      - The new framerate denominator (if FrameDouble = false, default = 1)
 ##
-## @ Preset      - The speed/quality preset [slow|normal|fast]. (default=normal)
+## @ Preset      - The speed/quality preset [slower|slow|normal|fast]. (default=normal)
 ##
 ## @ BlkSize     - The block size. Latest MvTools2.dll version from Pinterf supports 6, 8, 12, 16, 24, 32, 48 and 64.
 ##                 (default = Width>2000||Height>1200 ? 32 : Width>720||C.Height>480 ? 16 : 8)
@@ -50,7 +50,7 @@
 ## @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 ##
 ## @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-##                 0 to disable artifact masking. (Default = 140)
+##                 0 to disable artifact masking. (Default = 150)
 ##
 ## @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 ##
@@ -63,12 +63,23 @@
 ## @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified treshold, 
 ##                 or 0 to disable. (Default = 120)
 ##
+## @ DiffBlkSize - If specified, calculates a second interpolation with different settings to takes the areas where the mask looks better. (Default = 0)
+##                 
+## @ DiffBlkSizeV- Vertical block size for second interpolation clip (default = DiffBlkSize)
+##                 
+##
+## Presets
+## Fast:    Basic interpolation
+## Normal:  Fast + prefilter + MSuper on prefilter + MRecalculate
+## Slow:    Normal + DCT=1
+## Slower:  Slow + calculate diff between DCT=1 and DCT=0 to take the best from both
+##
 function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset", int "BlkSize", int "BlkSizeV", bool "FrameDouble", 
 \ string "Output", bool "Debug", clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver", int "DiffBlkSize", int "DiffBlkSizeV")
 {
     Preset = Default(Preset, "normal")
-    P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
-    Pset = Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
+    P_SLOWER = 0  P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
+    Pset = Preset == "slower" ? P_SLOWER : Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
     Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slow, normal or fast {'" + Preset + "'}")
     Output = Default(Output, "auto")
     O_AUTO = 0  O_FLOW = 1  O_NONE = 2  O_MASK = 3  O_SKIP = 4  O_RAW = 5  O_DIFF = 6  O_OVER = 7
@@ -82,7 +93,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     BlkSizeV    = Default(BlkSizeV, BlkSize)
 	DiffBlkSize = Default(DiffBlkSize, 0)
 	DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)
-    MaskTrh     = Default(MaskTrh, 140)
+    MaskTrh     = Default(MaskTrh, 150)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
     BlendOver   = Default(BlendOver, 50)
@@ -93,7 +104,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW && OPut!=O_DIFF  # Whether output has altered frame rate
     Recalculate = PSET <= P_NORMAL
     Dct         = PSET <= P_SLOW ? 1 : 0
-    CalcDiff    = DiffBlkSize > 0 || DiffBlkSizeV > 0
+    CalcDiff    = Pset == P_SLOWER || DiffBlkSize > 0 || DiffBlkSizeV > 0
+	DiffBlkSize = DiffBlkSize == 0 ? BlkSize : DiffBlkSize
+	DiffBlkSizeV= DiffBlkSizeV == 0 ? BlkSizeV : DiffBlkSizeV
 	MaskTrh2    = MaskTrh
 	SkipTrh2    = SkipTrh
 

@@ -266,6 +266,7 @@ function FRC_GaussianBlur2(clip C, float rad)
     
     return (rad<0.01) ? C 
     \    : (rad<1.2)  ? C.Blur(rad)
-    \    : (B.Width>8 && B.Height>8) ? B.GaussResize(w0, h0)
-    \    : B.BilinearResize(w0, h0)
+    \    : (B.Width>8 && B.Height>8) 
+    \       ? B.GaussResize(w0, h0, p=20)
+    \       : B.BilinearResize(w0, h0)
 }

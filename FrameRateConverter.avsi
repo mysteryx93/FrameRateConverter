@@ -183,11 +183,18 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=SkipTrh*2+20, strf=SkipTrh+10, trh=22)
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=22)
     EM = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
     # Last mask frame is white. Replace with previous frame.
     EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
     OutRaw = EM
+
+	# Stripe mask processing (detect large blocks on stripe-only mask)
+	EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize/4.0)*2, Round(C.Height/BlkSizeV/4.0)*2)
+    \       .mt_expand(mode= mt_circle(zero=true, radius=1))
+    \       .mt_binarize(min(SkipTrh*2, 255))
+    \       .Blur(.3)
+    \       .BicubicResize(C.Width, C.Height)
     
     ## Mask processing
     EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
@@ -196,6 +203,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EM = EM.mt_binarize(MaskTrh)
     \       .Blur(.6)
     \       .BicubicResize(C.Width, C.Height)
+    EM = EM.Overlay(EMstp, mode="lighten", pc_range=true) # Add large patches from StripeMask
     OutSkip = EMskip.BicubicResize(C.width, C.Height)
     
     ## "M" - Apply artifact removal

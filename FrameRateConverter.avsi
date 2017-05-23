@@ -183,7 +183,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=140, strf=70, trh=22)
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=SkipTrh*2+20, strf=SkipTrh+10, trh=22)
     EM = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
     # Last mask frame is white. Replace with previous frame.
     EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)

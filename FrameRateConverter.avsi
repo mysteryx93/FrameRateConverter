@@ -1,10 +1,10 @@
 # Frame Rate Converter
-# Version: 18-May-2017
+# Version: 24-May-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
 # raffriff42's "weak mask" and output options.
-# Special thanks to Pinterf for adding 16-bit support to MvTools2 and MaskTools2
+# Pinterf is the one who spent the most time working on the core libraries, adding features and fixing bugs
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -190,11 +190,12 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     OutRaw = EM
 
 	# Stripe mask processing (detect large blocks on stripe-only mask)
-	EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize/4.0)*2, Round(C.Height/BlkSizeV/4.0)*2)
-    \       .mt_expand(mode= mt_circle(zero=true, radius=1))
-    \       .mt_binarize(min(SkipTrh*2, 255))
-    \       .Blur(.3)
-    \       .BicubicResize(C.Width, C.Height)
+	EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
+	\      .FRC_GaussianBlur2(6)
+	\      .mt_binarize(80)
+	\      .mt_expand(mode= mt_circle(zero=true, radius=3))
+	\      .FRC_GaussianBlur2(1.4)
+	\      .BicubicResize(C.Width, C.Height)
     
     ## Mask processing
     EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)

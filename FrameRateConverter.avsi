@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 24-May-2017
+# Version: 25-May-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -35,7 +35,12 @@
 ## @ Preset      - The speed/quality preset [slower|slow|normal|fast]. (default=normal)
 ##
 ## @ BlkSize     - The block size. Latest MvTools2.dll version from Pinterf supports 6, 8, 12, 16, 24, 32, 48 and 64.
-##                 (default = Width>2000||Height>1200 ? 32 : Width>720||C.Height>480 ? 16 : 8)
+##                 Defaults for 4/3 video of height:
+##                 0-359:  8
+##                 360-749: 12
+##                 750-1199: 16
+##                 1200-1699: 24
+##                 1600-2160: 32
 ## 
 ## @ BlkSizeV    - The vertical block size. (default = BlkSize)
 ## 
@@ -50,7 +55,7 @@
 ## @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 ##
 ## @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-##                 0 to disable artifact masking. (Default = 150)
+##                 0 to disable artifact masking. (Default = 145)
 ##
 ## @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 ##
@@ -89,11 +94,12 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     FrameDouble = Default(FrameDouble, Defined(NewNum) ? false : true)
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
-    BlkSize     = Default(BlkSize, C.Width>2000||C.Height>1200 ? 32 : C.Width>720||C.Height>480 ? 16 : 8)
+	DefH        = Max(C.Height, C.Width/4*3)
+    BlkSize     = Default(BlkSize, DefH<360 ? 8 : DefH<750 ? 12 : DefH<1200 ? 24 : DefH<1600 ? 32)
     BlkSizeV    = Default(BlkSizeV, BlkSize)
     DiffBlkSize = Default(DiffBlkSize, 0)
     DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)
-    MaskTrh     = Default(MaskTrh, 150)
+    MaskTrh     = Default(MaskTrh, 145)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
     BlendOver   = Default(BlendOver, 50)
@@ -181,29 +187,31 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Flow = CalcDiff ? mt_merge(Flow, Flow2, EMdiff, luma=true, chroma="process") : Flow
     EM = CalcDiff ? mt_merge(EM, EM2, EMdiff, luma=true, chroma="process") : EM
 
+    # Last mask frame is white. Replace with previous frame.
+    EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
 
     # Mask: Stripes
     EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=22)
-    EM = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
-    # Last mask frame is white. Replace with previous frame.
-    EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
-    OutRaw = EM
+	# Create skip mask
+    OutRaw = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
+    EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
+    \       .mt_expand(mode= mt_circle(zero=true, radius=1))
+    \       .mt_binarize(SkipTrh)
+    
+    ## Create artifact correction mask
+    EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
+    \       .mt_expand(mode= mt_circle(zero=true, radius=1))
+    \       .mt_binarize(MaskTrh)
+    \       .Blur(.6)
+    \       .BicubicResize(C.Width, C.Height)
 
 	# Stripe mask processing (detect large blocks on stripe-only mask)
 	EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
 	\      .FRC_GaussianBlur2(6)
-	\      .mt_binarize(80)
-	\      .mt_expand(mode= mt_circle(zero=true, radius=3))
+	\      .mt_binarize(90)
+	\      .mt_expand(mode= mt_circle(zero=true, radius=5))
 	\      .FRC_GaussianBlur2(1.4)
 	\      .BicubicResize(C.Width, C.Height)
-    
-    ## Mask processing
-    EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
-    \       .mt_expand(mode= mt_circle(zero=true, radius=1))
-    EMskip = EM.mt_binarize(SkipTrh)
-    EM = EM.mt_binarize(MaskTrh)
-    \       .Blur(.6)
-    \       .BicubicResize(C.Width, C.Height)
     EM = EM.Overlay(EMstp, mode="lighten", pc_range=true) # Add large patches from StripeMask
     OutSkip = EMskip.BicubicResize(C.width, C.Height)
     

@@ -95,7 +95,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
     DefH        = Max(C.Height, C.Width/4*3)
-    BlkSize     = Default(BlkSize, DefH<360 ? 8 : DefH<750 ? 12 : DefH<1200 ? 24 : DefH<1600 ? 32)
+    BlkSize     = Default(BlkSize, DefH<360 ? 8 : DefH<750 ? 12 : DefH<1200 ? 16 : DefH<1600 ? 24 : 32)
     BlkSizeV    = Default(BlkSizeV, BlkSize)
     DiffBlkSize = Default(DiffBlkSize, 0)
     DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)

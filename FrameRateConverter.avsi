@@ -94,7 +94,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     FrameDouble = Default(FrameDouble, Defined(NewNum) ? false : true)
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
     NewDen      = FrameDouble ? C.FrameRateDenominator : Default(NewDen, 1)
-	DefH        = Max(C.Height, C.Width/4*3)
+    DefH        = Max(C.Height, C.Width/4*3)
     BlkSize     = Default(BlkSize, DefH<360 ? 8 : DefH<750 ? 12 : DefH<1200 ? 24 : DefH<1600 ? 32)
     BlkSizeV    = Default(BlkSizeV, BlkSize)
     DiffBlkSize = Default(DiffBlkSize, 0)
@@ -192,7 +192,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     # Mask: Stripes
     EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=22)
-	# Create skip mask
+    # Create skip mask
     OutRaw = EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true)
     EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
@@ -205,13 +205,13 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .Blur(.6)
     \       .BicubicResize(C.Width, C.Height)
 
-	# Stripe mask processing (detect large blocks on stripe-only mask)
-	EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
-	\      .FRC_GaussianBlur2(6)
-	\      .mt_binarize(90)
-	\      .mt_expand(mode= mt_circle(zero=true, radius=5))
-	\      .FRC_GaussianBlur2(1.4)
-	\      .BicubicResize(C.Width, C.Height)
+    # Stripe mask processing (detect large blocks on stripe-only mask)
+    EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
+    \      .FRC_GaussianBlur2(6)
+    \      .mt_binarize(90)
+    \      .mt_expand(mode= mt_circle(zero=true, radius=5))
+    \      .FRC_GaussianBlur2(1.4)
+    \      .BicubicResize(C.Width, C.Height)
     EM = EM.Overlay(EMstp, mode="lighten", pc_range=true) # Add large patches from StripeMask
     OutSkip = EMskip.BicubicResize(C.width, C.Height)
     

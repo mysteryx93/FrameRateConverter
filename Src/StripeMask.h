@@ -23,9 +23,9 @@ public:
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 	int __stdcall SetCacheHints(int cachehints, int frame_range);
 private:
-	void CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, float strength, bool vertical);
+	void CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical);
 	void CalcBandAvg(const BYTE* src, int pitch, int width, BYTE* lineAvg, int blk, bool vertical);
-	void CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, PatternStep* history, int blk, float strength, bool vertical, int compFwd, int compBck);
+	void CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, PatternStep* history, int blk, BYTE strength, bool vertical, int compFwd, int compBck);
 	int GetDiff(BYTE* lineAvg, int n, int size, int compBck, int compFwd);
 	void MarkArea(BYTE* dst, int dstPitch, int patternStart, int patternEnd, BYTE strength, int blk, bool vertical);
 	bool CompareHistory(PatternStep* history, int historySize, int length, int blk);

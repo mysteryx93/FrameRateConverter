@@ -73,7 +73,7 @@ PVideoFrame __stdcall StripeMask::GetFrame(int n, IScriptEnvironment* env) {
 	return dst;
 }
 
-void StripeMask::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, float strength, bool vertical) {
+void StripeMask::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical) {
 	int blk = !vertical ? blksize : blksizev;
 	int over = !vertical ? overlap : overlapv;
 	int width = !vertical ? vi.width : vi.height;
@@ -82,7 +82,6 @@ void StripeMask::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitc
 	int compFwd = ((!vertical ? comp : compv) - 1) / 2;
 
 	int i = 0;
-	int offset;
 	while (i < height - over) {
 		if (i >= height - blk)
 			i = height - blk;
@@ -121,7 +120,7 @@ void StripeMask::CalcBandAvg(const BYTE* src, int pitch, int size, BYTE* lineAvg
 
 // Lightens the mask with the contrast between values.
 // From the contrast lines, find and mark regular patterns
-void StripeMask::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, PatternStep* history, int blk, float strength, bool vertical, int compFwd, int compBck) {
+void StripeMask::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, PatternStep* history, int blk, BYTE strength, bool vertical, int compFwd, int compBck) {
 	BYTE ValDif;
 	// Alternate between 'on' and 'off' after binarizing contrasts, then scan for alternating states patterns.
 	bool Alt = false;

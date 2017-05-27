@@ -621,5 +621,5 @@ float Normalize(float value, VideoInfo vi) {
 	if (b == 8)
 		return value;
 	else
-		return value / b == 10 ? 4 : b == 12 ? 16 : b == 14 ? 64 : b == 16 ? 256 : b == 32 ? 1 / 255.0 : 1;
+		return value / b == 10 ? 4 : b == 12 ? 16 : b == 14 ? 64 : b == 16 ? 256 : b == 32 ? 1 / 255.0f : 1;
 }

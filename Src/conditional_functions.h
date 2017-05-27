@@ -35,7 +35,7 @@
 
 #include "avisynth.h"
 #include "avs\config.h"
-#include "avs\minmax.h""
+#include "avs\minmax.h"
 #include "avs\alignment.h"
 #include <emmintrin.h>
 #include <string>

@@ -26,7 +26,7 @@
 ### Increases the frame rate with interpolation and fine artifact removal.
 ##
 ## YV12/YV24/Y8/YUY2
-## Requires: FrameRateConverter.dll, MaskTools2, MvTools2, GRunT, rgtools (default prefilter)
+## Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools (default prefilter)
 ##
 ## @ NewNum      - The new framerate numerator (if FrameDouble = false, default = 60)
 ##

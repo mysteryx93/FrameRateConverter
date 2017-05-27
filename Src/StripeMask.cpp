@@ -40,12 +40,10 @@ PVideoFrame __stdcall StripeMask::GetFrame(int n, IScriptEnvironment* env) {
 	BYTE* dstp = dst->GetWritePtr();
 	const int dstPitch = dst->GetPitch();
 	memset(dstp, 0, dstPitch * vi.height);
-	dstStart = dstp;
-	dstEnd = dstp + dstPitch * vi.height;
 
 	// Create memory buffers.
 	BYTE* LineAvgH = new BYTE[vi.width];
-	BYTE* LineAvgV = new BYTE[vi.height];
+	BYTE* LineAvgV = new BYTE[vi.height]; // may need to size mod 16
 	PatternStep* HistoryH = new PatternStep[vi.width + 2]; // +2 to store initial data to compare to
 	PatternStep* HistoryV = new PatternStep[vi.height + 2];
 
@@ -88,9 +86,8 @@ void StripeMask::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitc
 	while (i < height - over) {
 		if (i >= height - blk)
 			i = height - blk;
-		offset = !vertical ? srcPitch * i : i;
-		CalcBandAvg(src + offset, srcPitch, width, lineAvg, blk, vertical);
-		CalcBand(dst + offset, dstPitch, width, lineAvg, history, blk, strength, vertical, compBck, compFwd);
+		CalcBandAvg(src + (!vertical ? srcPitch * i : i), srcPitch, width, lineAvg, blk, vertical);
+		CalcBand(dst + (!vertical ? dstPitch * i : i), dstPitch, width, lineAvg, history, blk, strength, vertical, compBck, compFwd);
 		i += blk - over;
 	}
 }
@@ -162,7 +159,7 @@ void StripeMask::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, Patt
 						if (PatternLength == 0 && hLength >= 4)
 							PatternLength = CompareHistory(history, hLength, 2, blk) ? 2 : 0;
 						if (PatternLength > 0)
-							PatternStart = history[hLength - PatternLength * 2 - 2].Pos;
+							PatternStart = history[max(0, hLength - PatternLength * 2 - 2)].Pos;
 					}
 					else if (PatternLength > 0) {
 						// Once pattern is detected, detect when pattern breaks.
@@ -210,9 +207,6 @@ void StripeMask::MarkArea(BYTE* dst, int dstPitch, int patternStart, int pattern
 	if (!vertical) {
 		for (int x = patternStart; x < patternEnd; x++) {
 			for (int y = 0; y < blk; y++) {
-				BYTE* dstp = dst + x + dstPitch * y;
-				if (dstp < dstStart || dstp >= dstEnd) // Without this check it randomly crashes with memory violation in Release only
-					return;
 				dst[x + dstPitch * y] = strength;
 			}
 		}
@@ -220,9 +214,6 @@ void StripeMask::MarkArea(BYTE* dst, int dstPitch, int patternStart, int pattern
 	else {
 		for (int x = patternStart; x < patternEnd; x++) {
 			for (int y = 0; y < blk; y++) {
-				BYTE* dstp = dst + x * dstPitch + y;
-				if (dstp < dstStart || dstp >= dstEnd) // Without this check it randomly crashes with memory violation in Release only
-					return;
 				dst[x * dstPitch + y] = strength;
 			}
 		}

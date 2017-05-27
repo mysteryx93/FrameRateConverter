@@ -40,6 +40,4 @@ private:
 	const int str;
 	const int strf;
 	const bool lines;
-	BYTE* dstStart;
-	BYTE* dstEnd;
 };

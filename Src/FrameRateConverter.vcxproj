@@ -156,11 +156,13 @@
     <ClInclude Include="avs\win.h" />
     <ClInclude Include="conditional.h" />
     <ClInclude Include="conditional_functions.h" />
+    <ClInclude Include="ContinuousMask.h" />
     <ClInclude Include="StripeMask.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="conditional.cpp" />
     <ClCompile Include="conditional_functions.cpp" />
+    <ClCompile Include="ContinuousMask.cpp" />
     <ClCompile Include="Init.cpp" />
     <ClCompile Include="StripeMask.cpp" />
   </ItemGroup>

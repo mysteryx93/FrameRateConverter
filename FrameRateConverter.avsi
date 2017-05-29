@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 26-May-2017
+# Version: 28-May-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -180,7 +180,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=2))
     \       .mt_binarize(60)
-    \       .FRC_GaussianBlur2(1.2)
+    \       .FRC_GaussianBlur42(1.2)
     \       .BicubicResize(C.Width, C.Height) : nop
     # Apply mask to Flow / EM
     EMdiff = CalcDiff ? OutFps ? EMdiff.ChangeFPS(NewNum, NewDen) : EMdiff : nop
@@ -197,6 +197,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
     \       .mt_binarize(SkipTrh)
+    OutSkip = EMskip.BicubicResize(C.width, C.Height)
     
     ## Create artifact correction mask
     EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
@@ -205,15 +206,16 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .Blur(.6)
     \       .BicubicResize(C.Width, C.Height)
 
-    # Stripe mask processing (detect large blocks on stripe-only mask)
+    # Detect continuous blocks on stripe mask
     EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
-    \      .FRC_GaussianBlur2(6)
-    \      .mt_binarize(90)
-    \      .mt_expand(mode= mt_circle(zero=true, radius=5))
-    \      .FRC_GaussianBlur2(1.4)
+	\      .ContinuousMask(18)
+	\      .BicubicResize(EMstp.Width/2, EMstp.Height/2)
+	\      .mt_binarize(80)
+	\      .mt_inpand()
+    \      .mt_expand(mode= mt_circle(zero=true, radius=8))
+    \      .FRC_GaussianBlur42(2.8)
     \      .BicubicResize(C.Width, C.Height)
-    EM = EM.Overlay(EMstp, mode="lighten", pc_range=true) # Add large patches from StripeMask
-    OutSkip = EMskip.BicubicResize(C.width, C.Height)
+    EM = EM.Overlay(EMstp, mode="lighten", pc_range=true) # Add continuous patches from StripeMask
     
     ## "M" - Apply artifact removal
     EM = OutFps ? EM.ChangeFPS(NewNum, NewDen) : EM
@@ -262,18 +264,37 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
 
 ##################################
-### Gaussian blur - simplified version. 
+### Emulate [[VariableBlur/GaussianBlur]] 
+##  For YUV, effective chroma blur varies depending on source 
+##  color subsampling - YUV444 has *more* chroma blur, others less.
 ##
-## @ rad - blur radius
+## @ var - works like GaussianBlur's varY
+## @ rad - blur radius (<var> squared); overrides <var>
+## @ vvar, vrad - vertical var & rad; default same as horizontal
+## @ p  - final [[GaussResize]] sharpness. Default 19
+##        (if > 25, blockiness; if < 15, loss of contrast)
 ##
-function FRC_GaussianBlur2(clip C, float rad)
+## version 2013-10-23 raffriff42 
+## version 2014-05-31 discrete hor. and vert. args
+## version 2017-05-21 bugfix: blockiness
+##
+function FRC_GaussianBlur42(clip C, 
+\               float "var", float "rad",
+\               float "vvar", float "vrad", float "p")
 {
-    rad = Max(0.0, rad)
+    var = Max(0.0, Float(Default(var, 1.0)))
+    rad = Max(1.0, Float(Default(rad, Pow(var, 0.5))))
+    var = Pow(Min(Max(0.0, rad), 60.0), 1.9) ## arbitrary max radius = 60
+
+    vvar = Max(0.0, Float(Default(vvar, var)))
+    vrad = Max(1.0, Float(Default(vrad, Pow(vvar, 0.5))))
+    vvar = Pow(Min(Max(0.0, vrad), 60.0), 1.9)
+    p    = Default(p, 19)
 
     w0 = C.Width
     h0 = C.Height
     w1 = Round(w0/rad)
-    h1 = Round(h0/rad) 
+    h1 = Round(h0/vrad) 
 
     B = C.BilinearResize(
     \         Min(Max(4, w1 + (w1 % 2)), w0), 
@@ -281,9 +302,7 @@ function FRC_GaussianBlur2(clip C, float rad)
 
     B = B.Blur(1.0).Blur(1.0)
     
-    return (rad<0.01) ? C 
-    \    : (rad<1.2)  ? C.Blur(rad)
-    \    : (B.Width>8 && B.Height>8) 
-    \       ? B.GaussResize(w0, h0, p=20)
-    \       : B.BilinearResize(w0, h0)
+    return (var<0.01 && vvar<0.01)   ? C 
+    \    : (B.Width>8 && B.Height>8) ? B.GaussResize(w0, h0, p=p)
+    \                                : B.BilinearResize(w0, h0)
 }

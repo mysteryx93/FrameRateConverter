@@ -1,6 +1,7 @@
 #include "avisynth.h"
 #include "conditional.h"
 #include "StripeMask.h"
+#include "ContinuousMask.h"
 
 AVSValue __cdecl Create_ConditionalFilterMT(AVSValue args, void* user_data, IScriptEnvironment* env) {
 	return new ConditionalFilter(args[0].AsClip(), args[1].AsClip(), args[2].AsClip(), args[3], args[4], args[5], args[6].AsBool(false), env);
@@ -21,11 +22,16 @@ AVSValue __cdecl Create_StripeMask(AVSValue args, void* user_data, IScriptEnviro
 	return new StripeMask(input, BlkSize, BlkSizeV, Overlap, OverlapV, Trh, Comp, CompV, Str, Strf, Lines, env);
 }
 
+AVSValue __cdecl Create_ContinuousMask(AVSValue args, void* user_data, IScriptEnvironment* env) {
+	return new ContinuousMask(args[0].AsClip(), args[1].AsInt(16), env);
+}
+
 const AVS_Linkage *AVS_linkage = 0;
 
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
 	AVS_linkage = vectors;
 	env->AddFunction("ConditionalFilterMT", "cccsss[show]b", Create_ConditionalFilterMT, 0);
 	env->AddFunction("StripeMask", "c[blksize]i[blksizev]i[overlap]i[overlapv]i[trh]i[Comp]i[CompV]i[str]i[strf]i[lines]b", Create_StripeMask, 0);
+	env->AddFunction("ContinuousMask", "c[radius]i[trh]i[str]i", Create_ContinuousMask, 0);
 	return "ConditionalFilterMT";
 }

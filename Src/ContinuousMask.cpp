@@ -13,19 +13,25 @@ ContinuousMask::~ContinuousMask() {
 
 PVideoFrame __stdcall ContinuousMask::GetFrame(int n, IScriptEnvironment* env) {
 	PVideoFrame src = child->GetFrame(n, env);
-	const BYTE* srcp = src->GetReadPtr();
-	int srcPitch = src->GetPitch();
-
 	PVideoFrame dst = env->NewVideoFrame(vi);
-	BYTE* dstp = dst->GetWritePtr();
-	const int dstPitch = dst->GetPitch();
-	memset(dstp, 0, dstPitch * vi.height);
+	if (vi.BitsPerComponent() == 8)
+		Calculate<short, BYTE>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
+	else if (vi.BitsPerComponent() < 32)
+		Calculate<int, short>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
+	else
+		Calculate<float, float>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
+	return dst;
+}
 
-	short Sum = 0;
-	const BYTE* srcIter = srcp;
-	BYTE* dstIter = dstp;
+template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp, int srcPitch, BYTE* dstp, int dstPitch, IScriptEnvironment* env) {
+	memset(dstp, 0, dstPitch * vi.height);
+	T Sum = 0;
+	const P* srcIter = (const P*)srcp;
+	P* dstIter = (P*)dstp;
 	short radFwd, radBck;
 	short radFwdV, radBckV;
+	srcPitch = srcPitch / sizeof(P);
+	dstPitch = dstPitch / sizeof(P);
 
 	// Calculate the average of [radius] pixels in all 4 directions, for source pixels having a value.
 	for (int y = 0; y < vi.height; y++) {
@@ -37,19 +43,17 @@ PVideoFrame __stdcall ContinuousMask::GetFrame(int n, IScriptEnvironment* env) {
 				radFwdV = min(radius, vi.height - y);
 				radBckV = min(min(radius, y + 1), vi.height) - 1;
 				for (short i = -radBck; i < radFwd; i++) {
-					Sum += srcIter[x + i];
+					Sum += (T)srcIter[x + i];
 				}
 				for (short i = -radBckV; i < radFwdV; i++) {
-					Sum += srcIter[x + i * srcPitch];
+					Sum += (T)srcIter[x + i * srcPitch];
 				}
-				dstIter[x] = BYTE(Sum / (radFwd + radBck + radFwdV + radBckV));
+				dstIter[x] = P(Sum / (radFwd + radBck + radFwdV + radBckV));
 			}
 		}
 		srcIter += srcPitch;
 		dstIter += dstPitch;
 	}
-
-	return dst;
 }
 
 // Marks filter as multi-threading friendly.

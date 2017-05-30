@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 29-May-2017
+# Version: 30-May-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -72,7 +72,7 @@
 ##                 
 ## @ DiffBlkSizeV- Vertical block size for second interpolation clip (default = DiffBlkSize)
 ##                 
-## @ Stripes     - Whether to detect and correct stripes (default=true)
+## @ Stripes     - Whether to detect and correct stripes. 0=Disabled, 1=Skip, 2=Blend (default=1)
 ##                 
 ##
 ## Presets
@@ -82,7 +82,7 @@
 ## Slower:  Slow + calculate diff between DCT=1 and DCT=0 to take the best from both
 ##
 function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset", int "BlkSize", int "BlkSizeV", bool "FrameDouble", string "Output", bool "Debug",
-\ clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver", int "DiffBlkSize", int "DiffBlkSizeV", bool "Stripes")
+\ clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver", int "DiffBlkSize", int "DiffBlkSizeV", int "Stripes")
 {
     Preset = Default(Preset, "normal")
     P_SLOWER = 0  P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
@@ -109,7 +109,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     CalcPrefilter = Defined(Prefilter) || Pset != P_FAST
     Prefilter   = Default(Prefilter, CalcPrefilter ? C.RemoveGrain(22) : C)
     Debug       = Default(Debug, false)
-	Stripes     = Default(Stripes, true)
+	Stripes     = Default(Stripes, 1)
     OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW && OPut!=O_DIFF  # Whether output has altered frame rate
     Recalculate = PSET <= P_NORMAL
     Dct         = PSET <= P_SLOW ? 1 : 0
@@ -126,6 +126,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Assert(SkipOver >= 0 && SkipOver <= 255, String(SkipOver, "FrameRateConverter: SkipOver must be between 0 and 255 {%.f}"))
     Assert(BlendOver==0 || SkipOver==0 || SkipOver > BlendOver, "FrameRateConverter: SkipOver must be greater than BlendOver")
     Assert(CalcDiff || OPut!=O_DIFF, "FrameRateConverter: You can only use Output='Diff' when using Preset='slower' or DiffBlkSize")
+    Assert(Stripes >= 0 && Stripes <= 2, String(Stripes, "FrameRateConverter: Stripes must be 0 (disabled), 1 (skip) or 2 (blend) {%.f}"))
 
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
@@ -196,7 +197,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     # Mask: Stripes
     EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=22)
     # Create skip mask
-    OutRaw = Stripes ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
+    OutRaw = Stripes > 0 ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
     EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
     \       .mt_binarize(SkipTrh)
@@ -225,7 +226,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EMskip = OutFps ? EMskip.ChangeFPS(NewNum, NewDen) : EMskip
 	EMstp = OutFps ? EMstp.ChangeFPS(NewNum, NewDen) : EMstp
     M = OutFps ? mt_merge(Flow, B, EM, luma=true, chroma="process") : Flow
-	M = Stripes && OutFps ? mt_merge(M, BHard, EMstp, luma=true, chroma="process") : M
+	M = Stripes > 0 && OutFps ? mt_merge(M, Stripes == 1 ? BHard : B, EMstp, luma=true, chroma="process") : M
 
     ## Apply BlendOver and SkipOver
     M2 = SkipOver > 0 ? ConditionalFilterMT(EMskip, B, BHard, "AverageLuma", "<", string(SkipOver)) : B

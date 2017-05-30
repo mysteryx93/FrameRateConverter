@@ -15,14 +15,16 @@ PVideoFrame __stdcall ContinuousMask::GetFrame(int n, IScriptEnvironment* env) {
 	PVideoFrame src = child->GetFrame(n, env);
 	PVideoFrame dst = env->NewVideoFrame(vi);
 	if (vi.BitsPerComponent() == 8)
-		Calculate<short, BYTE>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
+		Calculate<uint16_t, BYTE>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
 	else if (vi.BitsPerComponent() < 32)
-		Calculate<int, short>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
+		Calculate<uint32_t, uint16_t>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
 	else
 		Calculate<float, float>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
 	return dst;
 }
 
+// T: data type to calculate total (must hold P.MaxValue * radius * 4)
+// P: data type of each pixel
 template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp, int srcPitch, BYTE* dstp, int dstPitch, IScriptEnvironment* env) {
 	memset(dstp, 0, dstPitch * vi.height);
 	T Sum = 0;

@@ -1,6 +1,7 @@
 #include "avisynth.h"
 #include "avs\minmax.h"
 #include <cstring>
+#include <cstdint>
 
 class ContinuousMask : public GenericVideoFilter {
 public:

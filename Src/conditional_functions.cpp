@@ -100,6 +100,7 @@ AVSValue ConditionalFunction(const char* expr, AVSValue clip, AVSValue clip2, in
 		return MinMax(clip, n, treshold, offset, PLANAR_V, MINMAX_DIFFERENCE, env);
 	else
 		env->ThrowError("ConditionalFilterMT: Expression could not be recognized!");
+	return AVSValue();
 }
 
 // Average plane

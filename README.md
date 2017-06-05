@@ -36,9 +36,9 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 
 @ FrameDouble - Whether to double the frame rate and preserve original frames (default = true)
 
-@ Output      - Output mode [auto|flow|none|mask|skip|raw|over] (default = auto)
-                auto=normal artifact masking; flow=interpolation only; none=ConvertFPS only; mask=mask only; 
-                skip=mask used to Skip; raw=raw mask; over=mask as cyan overlay for debugging
+@ Output      - Output mode [auto|flow|over|none|raw|mask|skip|diff|stripe] (default = auto)
+                auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay; none=ConvertFPS only; raw=raw mask; 
+                mask=mask only; skip=mask used to Skip; diff=mask where alternate interpolation is better; stripe=mask used to cover stripes
 
 @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
 
@@ -61,7 +61,9 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 @ DiffBlkSize - If specified, calculates a second interpolation with different settings to takes the areas where the mask looks better. (Default = 0)
                 
 @ DiffBlkSizeV- Vertical block size for second interpolation clip (default = DiffBlkSize)
-                
+
+@ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
+
 
 Presets  
 Fast:    Basic interpolation  
@@ -82,7 +84,7 @@ StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Trh, Comp, CompV, Str, StrF,
 
 @ Overlap, OverlapV     - How many pixels to overlap between blocks, generally between 1/4 and 1/2 of block size. (default = BlkSize/4)
 
-@ Trh                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 22)
+@ Trh                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 25)
 
 @ Comp, CompV           - How many lines averages to compare with each other. (default = 2 with BlkSize<16 and 3 with BlkSize>=16)
 

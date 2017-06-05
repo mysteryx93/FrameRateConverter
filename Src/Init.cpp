@@ -13,7 +13,7 @@ AVSValue __cdecl Create_StripeMask(AVSValue args, void* user_data, IScriptEnviro
 	int BlkSizeV = args[2].AsInt(BlkSize > 0 ? BlkSize : 16);
 	int Overlap = args[3].AsInt(BlkSize / 4);
 	int OverlapV = args[4].AsInt(args[2].AsInt(BlkSize) / 4);
-	int Trh = args[5].AsInt(22);
+	int Trh = args[5].AsInt(25);
 	int Comp = args[6].AsInt(BlkSize < 16 ? 2 : 3);
 	int CompV = args[7].AsInt(args[6].AsInt(BlkSizeV < 16 ? 2 : 3));
 	int Str = args[8].AsInt(255);

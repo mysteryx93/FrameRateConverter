@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 30-May-2017
+# Version: 05-June-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -46,9 +46,9 @@
 ## 
 ## @ FrameDouble - Whether to double the frame rate and preserve original frames (default = true)
 ##
-## @ Output      - Output mode [auto|flow|none|mask|skip|raw|over] (default = auto)
-##                 auto=normal artifact masking; flow=interpolation only; none=ConvertFPS only; mask=mask only; 
-##                 skip=mask used to Skip; raw=raw mask; over=mask as cyan overlay for debugging
+## @ Output      - Output mode [auto|flow|over|none|raw|mask|skip|diff|stripe] (default = auto)
+##                 auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay; none=ConvertFPS only; raw=raw mask; 
+##                 mask=mask only; skip=mask used to Skip; diff=mask where alternate interpolation is better; stripe=mask used to cover stripes
 ##
 ## @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
 ##
@@ -72,7 +72,7 @@
 ##                 
 ## @ DiffBlkSizeV- Vertical block size for second interpolation clip (default = DiffBlkSize)
 ##                 
-## @ Stripes     - Whether to detect and correct stripes. 0=Disabled, 1=Skip, 2=Blend (default=1)
+## @ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
 ##                 
 ##
 ## Presets
@@ -82,16 +82,20 @@
 ## Slower:  Slow + calculate diff between DCT=1 and DCT=0 to take the best from both
 ##
 function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset", int "BlkSize", int "BlkSizeV", bool "FrameDouble", string "Output", bool "Debug",
-\ clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver", int "DiffBlkSize", int "DiffBlkSizeV", int "Stripes")
+\ clip "Prefilter", int "MaskTrh", int "MaskOcc", int "SkipTrh", int "BlendOver", int "SkipOver", int "DiffBlkSize", int "DiffBlkSizeV", string "Stripes")
 {
     Preset = Default(Preset, "normal")
     P_SLOWER = 0  P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
     Pset = Preset == "slower" ? P_SLOWER : Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
     Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slow, normal or fast {'" + Preset + "'}")
     Output = Default(Output, "auto")
-    O_AUTO = 0  O_FLOW = 1  O_NONE = 2  O_MASK = 3  O_SKIP = 4  O_RAW = 5  O_DIFF = 6  O_OVER = 7
-    OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "none" ? O_NONE : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "raw" ? O_RAW : Output == "diff" ? O_DIFF : Output == "over" ? O_OVER : -1
+    O_AUTO = 0  O_FLOW = 1  O_OVER = 2  O_NONE = 3  O_RAW = 4  O_MASK = 5  O_SKIP = 6  O_DIFF = 7  O_STRIPE = 8
+    OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "over" ? O_OVER : Output == "none" ? O_NONE : Output == "raw" ? O_RAW : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "diff" ? O_DIFF : Output == "stripe" ? O_STRIPE : -1
     Assert(OPut != -1, "FrameRateConverter: 'Output' not one of (auto|flow|none|mask|skip|raw|diff|over) {'" + Output + "'}")
+	Stripes = Default(Stripes, "skip")
+	S_NONE = 0  S_SKIP = 1  S_BLEND = 2
+	Stp = Stripes == "none" ? S_NONE : Stripes == "skip" ? S_SKIP : Stripes == "blend" ? S_BLEND : -1
+	Assert(Stp != -1, "FrameRateConverter: 'Stripes' not one of (none|skip|blend) {'" + Stripes + "'}")
     
     FrameDouble = Default(FrameDouble, Defined(NewNum) ? false : true)
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
@@ -109,8 +113,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     CalcPrefilter = Defined(Prefilter) || Pset != P_FAST
     Prefilter   = Default(Prefilter, CalcPrefilter ? C.RemoveGrain(22) : C)
     Debug       = Default(Debug, false)
-	Stripes     = Default(Stripes, 1)
-    OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW && OPut!=O_DIFF  # Whether output has altered frame rate
+    OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW && OPut!=O_DIFF && OPut!=O_STRIPE  # Whether output has altered frame rate
     Recalculate = PSET <= P_NORMAL
     Dct         = PSET <= P_SLOW ? 1 : 0
     CalcDiff    = Pset == P_SLOWER || DiffBlkSize > 0 || DiffBlkSizeV > 0
@@ -126,7 +129,6 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Assert(SkipOver >= 0 && SkipOver <= 255, String(SkipOver, "FrameRateConverter: SkipOver must be between 0 and 255 {%.f}"))
     Assert(BlendOver==0 || SkipOver==0 || SkipOver > BlendOver, "FrameRateConverter: SkipOver must be greater than BlendOver")
     Assert(CalcDiff || OPut!=O_DIFF, "FrameRateConverter: You can only use Output='Diff' when using Preset='slower' or DiffBlkSize")
-    Assert(Stripes >= 0 && Stripes <= 2, String(Stripes, "FrameRateConverter: Stripes must be 0 (disabled), 1 (skip) or 2 (blend) {%.f}"))
 
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
@@ -195,9 +197,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=22)
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=25)
     # Create skip mask
-    OutRaw = Stripes > 0 ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
+    OutRaw = Stp != S_NONE ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
     EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
     \       .mt_binarize(SkipTrh)
@@ -217,16 +219,16 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 	\      .mt_binarize(80)
 	\      .mt_inpand()
     \      .mt_expand(mode= mt_circle(zero=true, radius=8))
-    \      .FRC_GaussianBlur42(2.8)
+    \      .FRC_GaussianBlur42(Stp == S_SKIP ? 10.0 : 2.8)
     \      .BicubicResize(C.Width, C.Height)
-    #EM = Stripes ? EM.Overlay(EMstp, mode="lighten", pc_range=true) : EM
+    #EM = Stp != S_NONE ? EM.Overlay(EMstp, mode="lighten", pc_range=true) : EM
     
     ## "M" - Apply artifact removal
     EM = OutFps ? EM.ChangeFPS(NewNum, NewDen) : EM
     EMskip = OutFps ? EMskip.ChangeFPS(NewNum, NewDen) : EMskip
 	EMstp = OutFps ? EMstp.ChangeFPS(NewNum, NewDen) : EMstp
     M = OutFps ? mt_merge(Flow, B, EM, luma=true, chroma="process") : Flow
-	M = Stripes > 0 && OutFps ? mt_merge(M, Stripes == 1 ? BHard : B, EMstp, luma=true, chroma="process") : M
+	M = Stp != S_NONE && OutFps ? mt_merge(M, Stp == S_SKIP ? BHard : B, EMstp, luma=true, chroma="process") : M
 
     ## Apply BlendOver and SkipOver
     M2 = SkipOver > 0 ? ConditionalFilterMT(EMskip, B, BHard, "AverageLuma", "<", string(SkipOver)) : B
@@ -241,18 +243,20 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \     ? (FrameDouble ? Interleave(C, SelectOdd(M)) : M)
     \ : (Oput==O_FLOW)                              [** flow: interpolation only   *]
     \     ? Flow
+    \ : (Oput==O_OVER)                              [** over: mask as cyan overlay *]
+    \     ? Flow.Overlay(MergeRGB(BlankClip(EM, color_yuv=$000000), EM, EM), mode="Add", opacity=0.40, pc_range=true)
     \ : (Oput==O_NONE)                              [** none: ConvertFPS only      *]
     \     ? B
+    \ : (Oput==O_RAW)                               [** raw:  raw mask             *]
+    \     ? OutRaw.ColorYUV(levels="PC->TV")
     \ : (Oput==O_MASK)                              [** mask: mask only            *]
     \     ? EM
     \ : (Oput==O_SKIP)                              [** skip: skip mask            *]
     \     ? OutSkip
-    \ : (Oput==O_RAW)                               [** raw:  raw mask             *]
-    \     ? OutRaw.ColorYUV(levels="PC->TV")
     \ : (Oput==O_DIFF)                              [** diff: diff mask            *]
     \     ? EMdiff
-    \ : (Oput==O_OVER)                              [** over: mask as cyan overlay *]
-    \     ? Flow.Overlay(MergeRGB(BlankClip(EM, color_yuv=$000000), EM, EM), mode="Add", opacity=0.40, pc_range=true)
+    \ : (Oput==O_STRIPE)                            [** stripe: stripes mask       *]
+    \     ? EMstp
     \ : Assert(false, "FrameRateConverter: 'Output' INTERNAL ERROR")
 
     # Debug: display AverageLuma values of Skip, Mask and Raw

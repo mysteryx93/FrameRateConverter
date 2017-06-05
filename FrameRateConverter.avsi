@@ -92,10 +92,10 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     O_AUTO = 0  O_FLOW = 1  O_OVER = 2  O_NONE = 3  O_RAW = 4  O_MASK = 5  O_SKIP = 6  O_DIFF = 7  O_STRIPE = 8
     OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "over" ? O_OVER : Output == "none" ? O_NONE : Output == "raw" ? O_RAW : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "diff" ? O_DIFF : Output == "stripe" ? O_STRIPE : -1
     Assert(OPut != -1, "FrameRateConverter: 'Output' not one of (auto|flow|none|mask|skip|raw|diff|over) {'" + Output + "'}")
-	Stripes = Default(Stripes, "skip")
-	S_NONE = 0  S_SKIP = 1  S_BLEND = 2
-	Stp = Stripes == "none" ? S_NONE : Stripes == "skip" ? S_SKIP : Stripes == "blend" ? S_BLEND : -1
-	Assert(Stp != -1, "FrameRateConverter: 'Stripes' not one of (none|skip|blend) {'" + Stripes + "'}")
+    Stripes = Default(Stripes, "skip")
+    S_NONE = 0  S_SKIP = 1  S_BLEND = 2
+    Stp = Stripes == "none" ? S_NONE : Stripes == "skip" ? S_SKIP : Stripes == "blend" ? S_BLEND : -1
+    Assert(Stp != -1, "FrameRateConverter: 'Stripes' not one of (none|skip|blend) {'" + Stripes + "'}")
     
     FrameDouble = Default(FrameDouble, Defined(NewNum) ? false : true)
     NewNum      = FrameDouble ? C.FrameRateNumerator * 2 : Default(NewNum, 60)
@@ -214,10 +214,10 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     # Detect continuous blocks on stripe mask
     EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
-	\      .ContinuousMask(18)
-	\      .BicubicResize(EMstp.Width/2, EMstp.Height/2)
-	\      .mt_binarize(80)
-	\      .mt_inpand()
+    \      .ContinuousMask(18)
+    \      .BicubicResize(EMstp.Width/2, EMstp.Height/2)
+    \      .mt_binarize(80)
+    \      .mt_inpand()
     \      .mt_expand(mode= mt_circle(zero=true, radius=8))
     \      .FRC_GaussianBlur42(Stp == S_SKIP ? 10.0 : 2.8)
     \      .BicubicResize(C.Width, C.Height)
@@ -226,9 +226,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ## "M" - Apply artifact removal
     EM = OutFps ? EM.ChangeFPS(NewNum, NewDen) : EM
     EMskip = OutFps ? EMskip.ChangeFPS(NewNum, NewDen) : EMskip
-	EMstp = OutFps ? EMstp.ChangeFPS(NewNum, NewDen) : EMstp
+    EMstp = OutFps ? EMstp.ChangeFPS(NewNum, NewDen) : EMstp
     M = OutFps ? mt_merge(Flow, B, EM, luma=true, chroma="process") : Flow
-	M = Stp != S_NONE && OutFps ? mt_merge(M, Stp == S_SKIP ? BHard : B, EMstp, luma=true, chroma="process") : M
+    M = Stp != S_NONE && OutFps ? mt_merge(M, Stp == S_SKIP ? BHard : B, EMstp, luma=true, chroma="process") : M
 
     ## Apply BlendOver and SkipOver
     M2 = SkipOver > 0 ? ConditionalFilterMT(EMskip, B, BHard, "AverageLuma", "<", string(SkipOver)) : B

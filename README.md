@@ -84,7 +84,7 @@ StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Trh, Comp, CompV, Str, StrF,
 
 @ Overlap, OverlapV     - How many pixels to overlap between blocks, generally between 1/4 and 1/2 of block size. (default = BlkSize/4)
 
-@ Trh                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 25)
+@ Trh                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 26)
 
 @ Comp, CompV           - How many lines averages to compare with each other. (default = 2 with BlkSize<16 and 3 with BlkSize>=16)
 

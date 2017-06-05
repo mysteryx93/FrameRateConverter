@@ -197,7 +197,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=25)
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=26)
     # Create skip mask
     OutRaw = Stp != S_NONE ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
     EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)

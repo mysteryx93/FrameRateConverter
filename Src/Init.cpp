@@ -54,6 +54,6 @@ extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScri
 	AVS_linkage = vectors;
 	env->AddFunction("ConditionalFilterMT", "cccsss[show]b", Create_ConditionalFilterMT, 0);
 	env->AddFunction("StripeMask", "c[blksize]i[blksizev]i[overlap]i[overlapv]i[trh]i[Comp]i[CompV]i[str]i[strf]i[lines]b", Create_StripeMask, 0);
-	env->AddFunction("ContinuousMask", "c[radius]i[trh]i[str]i", Create_ContinuousMask, 0);
+	env->AddFunction("ContinuousMask", "c[radius]i", Create_ContinuousMask, 0);
 	return "ConditionalFilterMT";
 }

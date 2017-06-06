@@ -50,7 +50,6 @@ template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp
 				for (int i = -radBckV; i < radFwdV; i++) {
 					Sum += (T)srcIter[x + i * srcPitch];
 				}
-				Sum -= srcIter[x]; // Center is counted twice
 				dstIter[x] = P(Sum / (radFwd + radBck + radFwdV + radBckV));
 			}
 		}

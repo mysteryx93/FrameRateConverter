@@ -214,12 +214,12 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     # Detect continuous blocks on stripe mask
     EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
-    \      .ContinuousMask(18)
+    \      .ContinuousMask(20)
     \      .BicubicResize(EMstp.Width/2, EMstp.Height/2)
     \      .mt_binarize(80)
     \      .mt_inpand()
-    \      .mt_expand(mode= mt_circle(zero=true, radius=8))
-    \      .FRC_GaussianBlur42(Stp == S_SKIP ? 8.0 : 2.8)
+    \      .mt_expand(mode= mt_circle(zero=true, radius= Stp==S_SKIP ? 12 : 8))
+    \      .FRC_GaussianBlur42(Stp==S_SKIP ? 8.0 : 2.8)
     \      .BicubicResize(C.Width, C.Height)
     #EM = Stp != S_NONE ? EM.Overlay(EMstp, mode="lighten", pc_range=true) : EM
     

@@ -30,8 +30,8 @@ template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp
 	T Sum = 0;
 	const P* srcIter = (const P*)srcp;
 	P* dstIter = (P*)dstp;
-	short radFwd, radBck;
-	short radFwdV, radBckV;
+	int radFwd, radBck;
+	int radFwdV, radBckV;
 	srcPitch = srcPitch / sizeof(P);
 	dstPitch = dstPitch / sizeof(P);
 
@@ -44,10 +44,10 @@ template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp
 				radBck = min(min(radius, x + 1), vi.width) - 1;
 				radFwdV = min(radius, vi.height - y);
 				radBckV = min(min(radius, y + 1), vi.height) - 1;
-				for (short i = -radBck; i < radFwd; i++) {
+				for (int i = -radBck; i < radFwd; i++) {
 					Sum += (T)srcIter[x + i];
 				}
-				for (short i = -radBckV; i < radFwdV; i++) {
+				for (int i = -radBckV; i < radFwdV; i++) {
 					Sum += (T)srcIter[x + i * srcPitch];
 				}
 				Sum -= srcIter[x]; // Center is counted twice

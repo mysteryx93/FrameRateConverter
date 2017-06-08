@@ -133,8 +133,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
     BHard = C.ChangeFps(NewNum, NewDen)
-	AvsPlus = Findstr(VersionString(), "AviSynth+") != 0 && Findstr(VersionString(), "r1576") == 0
-	Blank = BlankClip(AvsPlus ? C.ConvertToY() : C.ConvertToY8(), color_yuv=$000000)
+    AvsPlus = Findstr(VersionString(), "AviSynth+") != 0 && Findstr(VersionString(), "r1576") == 0
+    Blank = BlankClip(AvsPlus ? C.ConvertToY() : C.ConvertToY8(), color_yuv=$000000)
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
     blk = Max(BlkSize, BlkSizeV)
@@ -240,9 +240,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 #    \  (" + string(BlendOver) + " > 0 && Skip >= " + string(BlendOver) + ") ? B : M",
 #    \  args = "EMskip,M,B,BHard", Local=true)
 
-	# Prepare Output=Over: Mask(cyan), Stripes(yellow)
+    # Prepare Output=Over: Mask(cyan), Stripes(yellow)
     FlowOver = Flow.Overlay(MergeRGB(Blank, EM, EM), mode="Add", opacity=0.40, pc_range=true)
-	FlowOver = Stp != S_NONE ? FlowOver.Overlay(MergeRGB(EMstp, EMstp, Blank), mode="Add", opacity=0.40, pc_range=true) : FlowOver
+    FlowOver = Stp != S_NONE ? FlowOver.Overlay(MergeRGB(EMstp, EMstp, Blank), mode="Add", opacity=0.40, pc_range=true) : FlowOver
 
     # Output modes
     R= (Oput==O_AUTO)                               [** auto: artifact masking     *]
@@ -272,9 +272,9 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \           Subtitle("BlkSize: " + string(BlkSize) + 
     \           (SkipSoft ? " - Blend" : "") +
     \           (SkipOver > 0 && Skip >= SkipOver ? " - Skip" : "") +
-	\           "\nSkip:  " + string(Skip, "%.4f") + 
+    \           "\nSkip:  " + string(Skip, "%.4f") + 
     \           "\nRaw:  " + string(ShowRaw.AverageLuma, "%.4f") + 
-	\           "\nMask: " + string(EM.AverageLuma, "%.4f") + 
+    \           "\nMask: " + string(EM.AverageLuma, "%.4f") + 
     \           (CalcDiff ? "\nDiff:    " + string(EMdiff.AverageLuma, "%.4f") : "") + 
     \           (Stp != 0 ? "\nStripes: " + string(EMstp.AverageLuma, "%.4f") : "")
     \           , lsp=0)""", args = "EM,EMskip,EMstp,EMdiff,ShowRaw,BlkSize,SkipOver,BlendOver,CalcDiff,Stp", Local=true) : R

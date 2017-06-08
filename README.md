@@ -3,17 +3,12 @@ Increases the frame rate with interpolation and fine artifact removal.
 
 by Etienne Charland
 
-This project contains
-- FrameRateConverter (AVSI)
-- ConditionalFilterMT (DLL)
-- StripeMask (DLL)
-
 
 ## FrameRateConverter
 
 Increases the frame rate with interpolation and fine artifact removal.
 
-FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver)
+FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver, Stripes)
 
 YV12/YV24/Y8/YUY2  
 Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools (default prefilter)
@@ -37,7 +32,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 @ FrameDouble - Whether to double the frame rate and preserve original frames (default = true)
 
 @ Output      - Output mode [auto|flow|over|none|raw|mask|skip|diff|stripe] (default = auto)
-                auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay; none=ConvertFPS only; raw=raw mask; 
+                auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay, stripes mask as yellow; none=ConvertFPS only; raw=raw mask; 
                 mask=mask only; skip=mask used to Skip; diff=mask where alternate interpolation is better; stripe=mask used to cover stripes
 
 @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
@@ -53,7 +48,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
                 Must be smaller (stronger) than MaskTrh. (Default = 60)
 
 @ BlendOver   - Try fallback block size when artifacts cover more than specified treshold, or 0 to disable.
-                If it fails again, it will revert to frame blending. (default = 50)
+                If it fails again, it will revert to frame blending. (default = 60)
 
 @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified treshold, 
                 or 0 to disable. (Default = 120)

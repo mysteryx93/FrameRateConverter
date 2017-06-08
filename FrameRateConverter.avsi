@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 05-June-2017
+# Version: 08-June-2017
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -47,7 +47,7 @@
 ## @ FrameDouble - Whether to double the frame rate and preserve original frames (default = true)
 ##
 ## @ Output      - Output mode [auto|flow|over|none|raw|mask|skip|diff|stripe] (default = auto)
-##                 auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay; none=ConvertFPS only; raw=raw mask; 
+##                 auto=normal artifact masking; flow=interpolation only; over=mask as cyan overlay, stripes mask as yellow; none=ConvertFPS only; raw=raw mask; 
 ##                 mask=mask only; skip=mask used to Skip; diff=mask where alternate interpolation is better; stripe=mask used to cover stripes
 ##
 ## @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
@@ -63,7 +63,7 @@
 ##                 Must be smaller (stronger) than MaskTrh. (Default = 60)
 ##
 ## @ BlendOver   - Try fallback block size when artifacts cover more than specified treshold, or 0 to disable.
-##                 If it fails again, it will revert to frame blending. (default = 50)
+##                 If it fails again, it will revert to frame blending. (default = 60)
 ##
 ## @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified treshold, 
 ##                 or 0 to disable. (Default = 120)
@@ -92,7 +92,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     O_AUTO = 0  O_FLOW = 1  O_OVER = 2  O_NONE = 3  O_RAW = 4  O_MASK = 5  O_SKIP = 6  O_DIFF = 7  O_STRIPE = 8
     OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "over" ? O_OVER : Output == "none" ? O_NONE : Output == "raw" ? O_RAW : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "diff" ? O_DIFF : Output == "stripe" ? O_STRIPE : -1
     Assert(OPut != -1, "FrameRateConverter: 'Output' not one of (auto|flow|none|mask|skip|raw|diff|over) {'" + Output + "'}")
-    Stripes = Default(Stripes, "skip")
+    Stripes = Default(Stripes, "blend")
     S_NONE = 0  S_SKIP = 1  S_BLEND = 2
     Stp = Stripes == "none" ? S_NONE : Stripes == "skip" ? S_SKIP : Stripes == "blend" ? S_BLEND : -1
     Assert(Stp != -1, "FrameRateConverter: 'Stripes' not one of (none|skip|blend) {'" + Stripes + "'}")
@@ -108,7 +108,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     MaskTrh     = Default(MaskTrh, 145)
     SkipTrh     = Default(SkipTrh, 60)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
-    BlendOver   = Default(BlendOver, 50)
+    BlendOver   = Default(BlendOver, 60)
     SkipOver    = Default(SkipOver, 120)
     CalcPrefilter = Defined(Prefilter) || Pset != P_FAST
     Prefilter   = Default(Prefilter, CalcPrefilter ? C.RemoveGrain(22) : C)
@@ -133,6 +133,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
     BHard = C.ChangeFps(NewNum, NewDen)
+	Blank = BlankClip(C, pixel_type="Y8", color_yuv=$000000)
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
     blk = Max(BlkSize, BlkSizeV)
@@ -160,12 +161,12 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     ## "EM" - error or artifact mask
     # Mask: SAD
-    EM = MaskTrh > 0 ? C.ConvertToY8().MMask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=255) : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EM = MaskTrh > 0 ? C.ConvertToY8().MMask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=255) : Blank
     # Mask: Temporal blending
     EMfwd = MaskTrh > 0 ? C.ConvertToY8().MMask(fwd, ml=255, kind=1, gamma=1/gam, thSCD2=255) : EM
     EM = MaskTrh > 0 ? EM.Overlay(EMfwd, opacity=.6, mode="lighten", pc_range=true) : EM
     # Mask: Occlusion
-    EMocc = MaskOcc > 0 ? C.ConvertToY8().MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255).mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+    EMocc = MaskOcc > 0 ? C.ConvertToY8().MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=255).mt_inpand() : Blank
     EM = MaskOcc > 0 ? EM.Overlay(EMocc, opacity=.4, mode="lighten", pc_range=true) : EM
 
 
@@ -176,10 +177,10 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     bak2 = CalcDiff ? Recalculate ? MRecalculate(super, bak2, blksize=DiffBlkSize/2, blksizev=DiffBlkSizeV/2, overlap = DiffBlkSize/2>4?(DiffBlkSize/8+1)/2*2:0, overlapv = DiffBlkSizeV/2>4?(DiffBlkSizeV/8+1)/2*2:0, thSAD=100) : bak : nop
     Flow2 = CalcDiff ? MFlowFps(C, super, bak2, fwd2, num=NewNum, den=NewDen, blend=false, ml=200, mask=2, thSCD2=255) : nop
     # Get raw mask again
-    EM2 = CalcDiff ? MaskTrh > 0 ? C.ConvertToY8().MMask(bak2, ml=255, kind=1, gamma=1/gam2, ysc=255, thSCD2=255) : BlankClip(C, pixel_type="Y8", color_yuv=$000000) : nop
+    EM2 = CalcDiff ? MaskTrh > 0 ? C.ConvertToY8().MMask(bak2, ml=255, kind=1, gamma=1/gam2, ysc=255, thSCD2=255) : Blank : nop
     EMfwd2 = CalcDiff ? MaskTrh > 0 ? C.ConvertToY8().MMask(fwd2, ml=255, kind=1, gamma=1/gam2, thSCD2=255) : EM2 : nop
     EM2 = CalcDiff ? MaskTrh > 0 ? EM2.Overlay(EMfwd2, opacity=.6, mode="lighten", pc_range=true) : EM2 : nop
-    EMocc2 = CalcDiff ? MaskOcc > 0 ? C.ConvertToY8().MMask(bak2, ml=MaskOcc, kind=2, gamma=1/gam2, ysc=255, thSCD2=255).mt_inpand() : BlankClip(C, pixel_type="Y8", color_yuv=$000000) : nop
+    EMocc2 = CalcDiff ? MaskOcc > 0 ? C.ConvertToY8().MMask(bak2, ml=MaskOcc, kind=2, gamma=1/gam2, ysc=255, thSCD2=255).mt_inpand() : Blank : nop
     EM2 = CalcDiff ? MaskOcc > 0 ? EM2.Overlay(EMocc2, opacity=.4, mode="lighten", pc_range=true) : EM2 : nop
     # Get difference mask between two versions
     EMdiff = CalcDiff ? mt_lutxy(EM, EM2, "x y -")
@@ -238,13 +239,17 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 #    \  (" + string(BlendOver) + " > 0 && Skip >= " + string(BlendOver) + ") ? B : M",
 #    \  args = "EMskip,M,B,BHard", Local=true)
 
+	# Prepare Output=Over: Mask(cyan), Stripes(yellow)
+    FlowOver = Flow.Overlay(MergeRGB(Blank, EM, EM), mode="Add", opacity=0.40, pc_range=true)
+	FlowOver = Stp != S_NONE ? FlowOver.Overlay(MergeRGB(EMstp, EMstp, Blank), mode="Add", opacity=0.40, pc_range=true) : FlowOver
+
     # Output modes
     R= (Oput==O_AUTO)                               [** auto: artifact masking     *]
     \     ? (FrameDouble ? Interleave(C, SelectOdd(M)) : M)
     \ : (Oput==O_FLOW)                              [** flow: interpolation only   *]
     \     ? Flow
     \ : (Oput==O_OVER)                              [** over: mask as cyan overlay *]
-    \     ? Flow.Overlay(MergeRGB(BlankClip(EM, color_yuv=$000000), EM, EM), mode="Add", opacity=0.40, pc_range=true)
+    \     ? FlowOver
     \ : (Oput==O_NONE)                              [** none: ConvertFPS only      *]
     \     ? B
     \ : (Oput==O_RAW)                               [** raw:  raw mask             *]
@@ -263,12 +268,15 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ShowRaw = OutFps ? OutRaw.ChangeFPS(NewNum, NewDen) : OutRaw
     R = Debug ? R.GScriptClip("""Skip = EMskip.AverageLuma()
     \           SkipSoft = BlendOver > 0 && Skip >= BlendOver && (Skip < SkipOver || SkipOver == 0)
-    \           Subtitle("Skip:  " + string(Skip) + "\nMask: " + string(EM.AverageLuma) + 
-    \           "\nRaw:  " + string(ShowRaw.AverageLuma) + 
-    \           "\nBlkSize: " + string(BlkSize) + 
+    \           Subtitle("BlkSize: " + string(BlkSize) + 
     \           (SkipSoft ? " - Blend" : "") +
-    \           (SkipOver > 0 && Skip >= SkipOver ? " - Skip" : ""), lsp=0)""",
-    \           args = "EMskip,EM,ShowRaw,BlkSize,SkipOver,BlendOver", Local=true) : R
+    \           (SkipOver > 0 && Skip >= SkipOver ? " - Skip" : "") +
+	\           "\nSkip:  " + string(Skip, "%.4f") + 
+    \           "\nRaw:  " + string(ShowRaw.AverageLuma, "%.4f") + 
+	\           "\nMask: " + string(EM.AverageLuma, "%.4f") + 
+    \           (CalcDiff ? "\nDiff:    " + string(EMdiff.AverageLuma, "%.4f") : "") + 
+    \           (Stp != 0 ? "\nStripes: " + string(EMstp.AverageLuma, "%.4f") : "")
+    \           , lsp=0)""", args = "EM,EMskip,EMstp,EMdiff,ShowRaw,BlkSize,SkipOver,BlendOver,CalcDiff,Stp", Local=true) : R
     return R
 }
 

@@ -133,7 +133,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ## "B" - Blending, "BHard" - No blending
     B = C.ConvertFps(NewNum, NewDen)
     BHard = C.ChangeFps(NewNum, NewDen)
-	Blank = BlankClip(C, pixel_type="Y8", color_yuv=$000000)
+	AvsPlus = Findstr(VersionString(), "AviSynth+") != 0 && Findstr(VersionString(), "r1576") == 0
+	Blank = BlankClip(AvsPlus ? C.ConvertToY() : C.ConvertToY8(), color_yuv=$000000)
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
     blk = Max(BlkSize, BlkSizeV)

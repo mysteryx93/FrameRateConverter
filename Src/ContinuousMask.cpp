@@ -26,7 +26,9 @@ PVideoFrame __stdcall ContinuousMask::GetFrame(int n, IScriptEnvironment* env) {
 // T: data type to calculate total (must hold P.MaxValue * radius * 4)
 // P: data type of each pixel
 template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp, int srcPitch, BYTE* dstp, int dstPitch, IScriptEnvironment* env) {
-	memset(dstp, 0, dstPitch * vi.height);
+	int width = vi.width;
+	int height = vi.height;
+	memset(dstp, 0, dstPitch * height);
 	T Sum = 0;
 	const P* srcIter = (const P*)srcp;
 	P* dstIter = (P*)dstp;
@@ -36,14 +38,14 @@ template<typename T, typename P> void ContinuousMask::Calculate(const BYTE* srcp
 	dstPitch = dstPitch / sizeof(P);
 
 	// Calculate the average of [radius] pixels in all 4 directions, for source pixels having a value.
-	for (int y = 0; y < vi.height; y++) {
-		for (int x = 0; x < vi.width; x++) {
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
 			if (srcIter[x] > 0) {
 				Sum = 0;
-				radFwd = min(radius, vi.width - x);
-				radBck = min(min(radius, x + 1), vi.width) - 1;
-				radFwdV = min(radius, vi.height - y);
-				radBckV = min(min(radius, y + 1), vi.height) - 1;
+				radFwd = min(radius, width - x);
+				radBck = min(min(radius, x + 1), width) - 1;
+				radFwdV = min(radius, height - y);
+				radBckV = min(min(radius, y + 1), height) - 1;
 				for (int i = -radBck; i < radFwd; i++) {
 					Sum += (T)srcIter[x + i];
 				}

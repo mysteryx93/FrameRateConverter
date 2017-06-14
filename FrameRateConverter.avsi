@@ -55,12 +55,12 @@
 ## @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 ##
 ## @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-##                 0 to disable artifact masking. (Default = 145)
+##                 0 to disable artifact masking. (Default = 100)
 ##
 ## @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 ##
 ## @ SkipTrh     - The treshold where a block is counted for the skip mask, between 0 and 255. Smaller = stronger.
-##                 Must be smaller (stronger) than MaskTrh. (Default = 60)
+##                 Must be smaller (stronger) than MaskTrh. (Default = 55)
 ##
 ## @ BlendOver   - Try fallback block size when artifacts cover more than specified treshold, or 0 to disable.
 ##                 If it fails again, it will revert to frame blending. (default = 60)
@@ -87,7 +87,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Preset = Default(Preset, "normal")
     P_SLOWER = 0  P_SLOW = 1  P_NORMAL = 2  P_FAST = 3
     Pset = Preset == "slower" ? P_SLOWER : Preset == "slow" ? P_SLOW : Preset == "normal" ? P_NORMAL : Preset == "fast" ? P_FAST : -1
-    Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slow, normal or fast {'" + Preset + "'}")
+    Assert(Pset != -1, "FrameRateConverter: 'Preset' must be slower, slow, normal or fast {'" + Preset + "'}")
     Output = Default(Output, "auto")
     O_AUTO = 0  O_FLOW = 1  O_OVER = 2  O_NONE = 3  O_RAW = 4  O_MASK = 5  O_SKIP = 6  O_DIFF = 7  O_STRIPE = 8
     OPut = Output == "auto" ? O_AUTO : Output == "flow" ? O_FLOW : Output == "over" ? O_OVER : Output == "none" ? O_NONE : Output == "raw" ? O_RAW : Output == "mask" ? O_MASK : Output == "skip" ? O_SKIP : Output == "diff" ? O_DIFF : Output == "stripe" ? O_STRIPE : -1
@@ -105,8 +105,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     BlkSizeV    = Default(BlkSizeV, BlkSize)
     DiffBlkSize = Default(DiffBlkSize, 0)
     DiffBlkSizeV= Default(DiffBlkSizeV, DiffBlkSize)
-    MaskTrh     = Default(MaskTrh, 145)
-    SkipTrh     = Default(SkipTrh, 60)
+    MaskTrh     = Default(MaskTrh, 100)
+    SkipTrh     = Default(SkipTrh, 55)
     MaskOcc     = MaskTrh > 0 ? Default(MaskOcc, 105) : 0
     BlendOver   = Default(BlendOver, 60)
     SkipOver    = Default(SkipOver, 120)
@@ -198,26 +198,25 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     # Last mask frame is white. Replace with previous frame.
     EM = EM.DeleteFrame(EM.Framecount-1).Loop(2, EM.Framecount-1)
 
-    # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=23)
     # Create skip mask
-    OutRaw = Stp != S_NONE ? EM.Overlay(EMstp, opacity=.5, mode="lighten", pc_range=true) : EM
-    EMskip = OutRaw.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
+    EMskip = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
     \       .mt_binarize(SkipTrh)
     OutSkip = EMskip.BicubicResize(C.width, C.Height)
     
     ## Create artifact correction mask
+	OutRaw = EM
     EM = EM.BicubicResize(Round(C.Width/BlkSize/4.0)*4, Round(C.Height/BlkSizeV/4.0)*4)
     \       .mt_expand(mode= mt_circle(zero=true, radius=1))
     \       .mt_binarize(MaskTrh)
     \       .Blur(.6)
     \       .BicubicResize(C.Width, C.Height)
 
-    # Detect continuous blocks on stripe mask
-    EMstp = EMstp.BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
+    # Mask: Stripes
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipTrh*2+20, 255), strf=min(SkipTrh+10, 255), trh=23)
+    \      .BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
     \      .ContinuousMask(22)
-    \      .BicubicResize(EMstp.Width/2, EMstp.Height/2)
+    EMstp = EMstp.BicubicResize(EMstp.Width/2, EMstp.Height/2)
     \      .mt_binarize(82)
     \      .mt_inpand()
     \      .mt_expand(mode= mt_circle(zero=true, radius= Stp==S_SKIP ? 12 : 8))

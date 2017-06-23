@@ -40,12 +40,12 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 @ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
 
 @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-                0 to disable artifact masking. (Default = 145)
+                0 to disable artifact masking. (Default = 100)
 
 @ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 
 @ SkipTrh     - The treshold where a block is counted for the skip mask, between 0 and 255. Smaller = stronger.
-                Must be smaller (stronger) than MaskTrh. (Default = 60)
+                Must be smaller (stronger) than MaskTrh. (Default = 55)
 
 @ BlendOver   - Try fallback block size when artifacts cover more than specified treshold, or 0 to disable.
                 If it fails again, it will revert to frame blending. (default = 60)

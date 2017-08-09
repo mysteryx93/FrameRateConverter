@@ -8,10 +8,10 @@ by Etienne Charland
 
 Increases the frame rate with interpolation and fine artifact removal.
 
-FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver, Stripes)
+FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver, Stripes, Dct)
 
 YV12/YV24/Y8/YUY2  
-Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools (default prefilter)
+Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for debug only)
 
 @ NewNum      - The new framerate numerator (if FrameDouble = false, default = 60)
 
@@ -37,7 +37,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 
 @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
 
-@ Prefilter   - Specified a custom prefiltered clip. (Default = RemoveGrain(22))
+@ Prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(22). Recommended only when not using a denoiser (Default=none)
 
 @ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
                 0 to disable artifact masking. (Default = 100)
@@ -52,19 +52,18 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT, rgtools
 
 @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified treshold, 
                 or 0 to disable. (Default = 120)
-
-@ DiffBlkSize - If specified, calculates a second interpolation with different settings to takes the areas where the mask looks better. (Default = 0)
                 
-@ DiffBlkSizeV- Vertical block size for second interpolation clip (default = DiffBlkSize)
-
 @ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
 
+@ Dct         - Overrides DCT parameter for MAnalyse (default: Normal=0, Slow/Slower=4, Slowest=1)
+                
 
 Presets  
 Fast:    Basic interpolation  
-Normal:  Fast + prefilter + MSuper on prefilter + MRecalculate  
-Slow:    Normal + DCT=1  
-Slower:  Slow + calculate diff between DCT=1 and DCT=0 to take the best from both  
+Normal:  Fast + MRecalculate  
+Slow:    Normal + DCT=4  
+Slower:  Slow + calculate diff between DCT=4 and DCT=0 to take the best from both  
+Slowest: Slower + use DCT=1 instead of 4  
 
 
 

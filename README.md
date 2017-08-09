@@ -8,7 +8,7 @@ by Etienne Charland
 
 Increases the frame rate with interpolation and fine artifact removal.
 
-FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskTrh, MaskOcc, SkipTrh, BlendOver, SkipOver, Stripes, Dct)
+FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stripes, Dct)
 
 YV12/YV24/Y8/YUY2  
 Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for debug only)
@@ -39,18 +39,18 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
 
 @ Prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(22). Recommended only when not using a denoiser (Default=none)
 
-@ MaskTrh     - The treshold where a block is considered bad, between 0 and 255. Smaller = stronger.
+@ MaskThr     - The threshold where a block is considered bad, between 0 and 255. Smaller = stronger.
                 0 to disable artifact masking. (Default = 100)
 
-@ MaskOcc     - Occlusion mask treshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
+@ MaskOcc     - Occlusion mask threshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 
-@ SkipTrh     - The treshold where a block is counted for the skip mask, between 0 and 255. Smaller = stronger.
-                Must be smaller (stronger) than MaskTrh. (Default = 55)
+@ SkipThr     - The threshold where a block is counted for the skip mask, between 0 and 255. Smaller = stronger.
+                Must be smaller (stronger) than MaskThr. (Default = 55)
 
-@ BlendOver   - Try fallback block size when artifacts cover more than specified treshold, or 0 to disable.
+@ BlendOver   - Try fallback block size when artifacts cover more than specified threshold, or 0 to disable.
                 If it fails again, it will revert to frame blending. (default = 60)
 
-@ SkipOver    - Skip interpolation of frames when artifacts cover more than specified treshold, 
+@ SkipOver    - Skip interpolation of frames when artifacts cover more than specified threshold, 
                 or 0 to disable. (Default = 120)
                 
 @ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
@@ -138,5 +138,5 @@ Do not include parenthesis.
 - UPlaneMinMaxDifference
 - VPlaneMinMaxDifference
 
-Functions comparing two clips will compare testclip with source1. Some functions have treshold and offset parameters. 
+Functions comparing two clips will compare testclip with source1. Some functions have threshold and offset parameters. 
 These parameters are not currently supported and are left at 0. If you need them, feel free to edit the code to parse parameter values.

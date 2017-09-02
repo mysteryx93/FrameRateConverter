@@ -131,7 +131,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     B = C.ConvertFps(NewNum, NewDen)
     BHard = C.ChangeFps(NewNum, NewDen)
     AvsPlus = Findstr(VersionString(), "AviSynth+") != 0 && Findstr(VersionString(), "r1576") == 0
-	C_luma = C.ConvertToY8()
+    C_luma = C.ConvertToY8()
     Blank = BlankClip(AvsPlus ? C.ConvertToY() : C_luma, color_yuv=$000000)
 
     ## Adjust parameters for different block sizes, causing stronger or weaker masks
@@ -281,14 +281,14 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 function InterpolateDoubles(clip C, float "Thr", bool "Show", string "Preset", int "BlkSize", int "BlkSizeV", int "MaskThr", int "MaskOcc", int "SkipThr", int "BlendOver", int "SkipOver", string "Stripes", int "Dct", int "DctRe")
 {
     Thr    = default(thr, .1)
-	Show   = default(Show, false)
+    Show   = default(Show, false)
 
-	PrevC  = C.DeleteFrame(c.FrameCount-1).DuplicateFrame(0)
+    PrevC  = C.DeleteFrame(c.FrameCount-1).DuplicateFrame(0)
     #NextC  = C.DuplicateFrame(C.FrameCount-1).DeleteFrame(0)
-	Flow = FrameRateConverter(C, FrameDouble=true, Preset=preset, BlkSize=BlkSize, BlkSizeV=BlkSizeV, MaskThr=MaskThr, MaskOcc=MaskOcc, SkipThr=SkipThr, BlendOver=BlendOver, SkipOver=SkipOver, Stripes=Stripes, Dct=Dct, DctRe=DctRe).SelectOdd()
+    Flow = FrameRateConverter(C, FrameDouble=true, Preset=preset, BlkSize=BlkSize, BlkSizeV=BlkSizeV, MaskThr=MaskThr, MaskOcc=MaskOcc, SkipThr=SkipThr, BlendOver=BlendOver, SkipOver=SkipOver, Stripes=Stripes, Dct=Dct, DctRe=DctRe).SelectOdd()
     Flow = (Show) ? Flow.Subtitle("FRAME FIXED",size=30,text_color=$0000FF,align=5) : Flow
 
-	return ConditionalFilterMT(PrevC, Flow, C, "YDifferenceToNext", "lessthan", string(thr))
+    return ConditionalFilterMT(PrevC, Flow, C, "YDifferenceToNext", "lessthan", string(thr))
 }
 
 

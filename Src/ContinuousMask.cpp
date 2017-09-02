@@ -14,7 +14,7 @@ ContinuousMask::~ContinuousMask() {
 PVideoFrame __stdcall ContinuousMask::GetFrame(int n, IScriptEnvironment* env) {
 	PVideoFrame src = child->GetFrame(n, env);
 	PVideoFrame dst = env->NewVideoFrame(vi);
-	if (vi.BitsPerComponent() <= 8)
+	if (vi.BitsPerComponent() == 8)
 		Calculate<uint16_t, BYTE>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);
 	else if (vi.BitsPerComponent() < 32)
 		Calculate<uint32_t, uint16_t>(src->GetReadPtr(), src->GetPitch(), dst->GetWritePtr(), dst->GetPitch(), env);

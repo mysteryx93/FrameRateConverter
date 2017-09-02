@@ -13,7 +13,7 @@ AVSValue __cdecl Create_StripeMask(AVSValue args, void* user_data, IScriptEnviro
 	int BlkSizeV = args[2].AsInt(BlkSize > 0 ? BlkSize : 16);
 	int Overlap = args[3].AsInt(BlkSize / 4);
 	int OverlapV = args[4].AsInt(args[2].AsInt(BlkSize) / 4);
-	int Trh = args[5].AsInt(26);
+	int Thr = args[5].AsInt(26);
 	int Comp = args[6].AsInt(BlkSize <= 16 ? 2 : 3);
 	int CompV = args[7].AsInt(args[6].AsInt(BlkSizeV <= 16 ? 2 : 3));
 	int Str = args[8].AsInt(255);
@@ -33,7 +33,7 @@ AVSValue __cdecl Create_StripeMask(AVSValue args, void* user_data, IScriptEnviro
 		input = env->Invoke("ConvertBits", AVSValue(sargs, 2), nargs).AsClip();
 	}
 
-	input = new StripeMask(input, BlkSize, BlkSizeV, Overlap, OverlapV, Trh, Comp, CompV, Str, Strf, Lines, env);
+	input = new StripeMask(input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines, env);
 
 	// Convert back to original bit depth.
 	if (SrcBit > 8) {
@@ -53,7 +53,7 @@ const AVS_Linkage *AVS_linkage = 0;
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors) {
 	AVS_linkage = vectors;
 	env->AddFunction("ConditionalFilterMT", "cccsss[show]b", Create_ConditionalFilterMT, 0);
-	env->AddFunction("StripeMask", "c[blksize]i[blksizev]i[overlap]i[overlapv]i[trh]i[Comp]i[CompV]i[str]i[strf]i[lines]b", Create_StripeMask, 0);
+	env->AddFunction("StripeMask", "c[blksize]i[blksizev]i[overlap]i[overlapv]i[thr]i[Comp]i[CompV]i[str]i[strf]i[lines]b", Create_StripeMask, 0);
 	env->AddFunction("ContinuousMask", "c[radius]i", Create_ContinuousMask, 0);
 	return "ConditionalFilterMT";
 }

@@ -8,7 +8,7 @@ by Etienne Charland
 
 Increases the frame rate with interpolation and fine artifact removal.
 
-FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stripes, Dct)
+FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stripes, Dct, DctRe)
 
 YV12/YV24/Y8/YUY2  
 Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for debug only)
@@ -17,7 +17,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
 
 @ NewDen      - The new framerate denominator (if FrameDouble = false, default = 1)
 
-@ Preset      - The speed/quality preset [slower|slow|normal|fast]. (default=normal)
+@ Preset      - The speed/quality preset [slowest|slower|slow|normal|fast|faster]. (default=normal)
 
 @ BlkSize     - The block size. Latest MvTools2.dll version from Pinterf supports 6, 8, 12, 16, 24, 32, 48 and 64.  
                 Defaults for 4/3 video of height:  
@@ -37,7 +37,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
 
 @ Debug       - Whether to display AverageLuma values of Skip, Mask and Raw. (Default = false)
 
-@ Prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(22). Recommended only when not using a denoiser (Default=none)
+@ Prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(21). Recommended only when not using a denoiser (Default=none)
 
 @ MaskThr     - The threshold where a block is considered bad, between 0 and 255. Smaller = stronger.
                 0 to disable artifact masking. (Default = 100)
@@ -48,14 +48,16 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
                 Must be smaller (stronger) than MaskThr. (Default = 55)
 
 @ BlendOver   - Try fallback block size when artifacts cover more than specified threshold, or 0 to disable.
-                If it fails again, it will revert to frame blending. (default = 60)
+                If it fails again, it will revert to frame blending. (default = 65)
 
 @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified threshold, 
-                or 0 to disable. (Default = 120)
+                or 0 to disable. (Default = 210)
                 
 @ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
 
-@ Dct         - Overrides DCT parameter for MAnalyse (default: Normal=0, Slow/Slower=4, Slowest=1)
+@ Dct         - Overrides DCT parameter for MAnalyse (default: Normal=0, Slow=4, Slowest=1)
+
+@ DctRe       - Overrides DCT parameter for MRecalculate (default: Fast=0, Normal=4, Slowest=1)
                 
 
 Presets  
@@ -68,17 +70,32 @@ Slowest: Slower + use DCT=1 instead of 4
 
 
 
+## InterpolateDoubles
+
+Replace double frames with interpolated frames using FrameRateConverter
+
+InterpolateDoubles(C, Thr, Show, Preset, BlkSize, BlkSizeV, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stripes, Dct, DctRe)
+
+@ Thr         - Frames will be replaced when Luma difference with previous frame is greater than threshold (default=.1)
+
+@ Show        - If true, "FRAME FIXED" will be written on replaced frames (default=false)
+
+@ All other parameters are the same as FrameRateConverter
+
+
+
+
 ## StripeMask
 
 Builds a mask detecting horizontal and vertical straight lines and patterns, as MvTools tends to fail in such areas.
 
-StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Trh, Comp, CompV, Str, StrF, Lines
+StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, StrF, Lines
 
 @ BlkSize, BlkSizeV     - The horizontal and vertical block size. (default: BlkSize=16, BlkSizeV=BlkSize)
 
 @ Overlap, OverlapV     - How many pixels to overlap between blocks, generally between 1/4 and 1/2 of block size. (default = BlkSize/4)
 
-@ Trh                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 26)
+@ Thr                   - Dynamic content gives blended (grey) line averages while lines and stripes have contrast between average values. This specifies the contrast threshold where a line average is taken for calculations. A lower value gives a stronger and more sensitive mask. (default = 26)
 
 @ Comp, CompV           - How many lines averages to compare with each other. (default = 2 with BlkSize<16 and 3 with BlkSize>=16)
 

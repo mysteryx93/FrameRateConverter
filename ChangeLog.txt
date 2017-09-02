@@ -1,0 +1,13 @@
+Version 1.1 (2017-09-01)
+- Added InterpolateDoubles function to replace double frames with interpolated frames using FrameRateConverter
+- Added DctRe parameter to specify DCT for MRecalculate
+- DCT now also applied for MRecalculate by default
+- Preset Normal now uses DCT=4 for MRecalculate. Old Normal is now Fast and old Fast is now Faster.
+- Presets Slow and Slower also now use DCT=4 for MRecalculate
+- SkipOver default treshold increased from 120 to 210
+- BlendOver default treshold increased from 60 to 65
+- SkipOver now specified for thSCD2 of MMask. Previously, scene changes would cause 2 adjacent frames to be skipped. Specifying thSCD2 causes only 1 frame to be marked for scene change.
+- Updated Avisynth headers in DLL
+- StripeMask: renamed trh parameter to thr
+
+Version 1.0 (2017-08-08): Official Release

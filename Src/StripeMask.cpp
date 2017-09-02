@@ -1,7 +1,7 @@
 #include "StripeMask.h"
 
-StripeMask::StripeMask(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _trh, int _comp, int _compv, int _str, int _strf, bool _lines, IScriptEnvironment* env) :
-	GenericVideoFilter(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), trh(_trh), comp(_comp), compv(_compv), str(_str), strf(_strf), lines(_lines) {
+StripeMask::StripeMask(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, IScriptEnvironment* env) :
+	GenericVideoFilter(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), strf(_strf), lines(_lines) {
 
 	if (!vi.IsYUV() && !vi.IsY())
 		env->ThrowError("StripeMask: clip must be Y or YUV format");
@@ -13,7 +13,7 @@ StripeMask::StripeMask(PClip _child, int _blksize, int _blksizev, int _overlap, 
 		env->ThrowError("StripeMask: overlap must be smaller than blksize");
 	if (blksizev != 0 && (overlapv < 0 || overlapv >= blksizev))
 		env->ThrowError("StripeMask: overlapv must be smaller than blksizev");
-	if (trh < 0 || trh > 255)
+	if (thr < 0 || thr > 255)
 		env->ThrowError("StripeMask: Trh must be between 0 and 255");
 	if (comp < 2 || comp > 5)
 		env->ThrowError("StripeMask: Comp must be between 2 and 5");
@@ -139,11 +139,11 @@ void StripeMask::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, Patt
 
 		if (lines) {
 			// Mark line contrasts.
-			if (ValDif >= trh)
+			if (ValDif >= thr)
 				MarkArea(dst, dstPitch, i, i + 1, strength, blk, vertical);
 		}
 		else {
-			if ((ValDif >= trh && !Alt) || (ValDif < trh && Alt)) {
+			if ((ValDif >= thr && !Alt) || (ValDif < thr && Alt)) {
 				// Build history of alternating states.
 				Alt = !Alt;
 				history[hLength++] = PatternStep(i, i - AltPos);

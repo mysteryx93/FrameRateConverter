@@ -8,7 +8,7 @@ by Etienne Charland
 
 Increases the frame rate with interpolation and fine artifact removal.
 
-FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stripes, Dct, DctRe)
+FrameRateConverter(C, NewNum, NewDen, Preset, BlkSize, BlkSizeV, FrameDouble, Output, Debug, Prefilter, MaskThr, MaskOcc, SkipThr, BlendOver, SkipOver, Stp, Dct, DctRe)
 
 YV12/YV24/Y8/YUY2  
 Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for debug only)
@@ -40,7 +40,7 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
 @ Prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(21). Recommended only when not using a denoiser (Default=none)
 
 @ MaskThr     - The threshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-                0 to disable artifact masking. (Default = 100)
+                0 to disable artifact masking. (Default = 120)
 
 @ MaskOcc     - Occlusion mask threshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
 
@@ -48,12 +48,12 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
                 Must be smaller (stronger) than MaskThr. (Default = 55)
 
 @ BlendOver   - Try fallback block size when artifacts cover more than specified threshold, or 0 to disable.
-                If it fails again, it will revert to frame blending. (default = 65)
+                If it fails again, it will revert to frame blending. (default = 70)
 
 @ SkipOver    - Skip interpolation of frames when artifacts cover more than specified threshold, 
                 or 0 to disable. (Default = 210)
                 
-@ Stripes     - How to deal with stripes [none|skip|blend] (default=skip)
+@ Stp         - Whether to detect and blend stripes (default=true)
 
 @ Dct         - Overrides DCT parameter for MAnalyse (default: Normal=0, Slow=4, Slowest=1)
 
@@ -61,11 +61,13 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
                 
 
 Presets  
-Fast:    Basic interpolation  
-Normal:  Fast + MRecalculate  
-Slow:    Normal + DCT=4  
-Slower:  Slow + calculate diff between DCT=4 and DCT=0 to take the best from both  
-Slowest: Slower + use DCT=1 instead of 4  
+Faster:  Basic interpolation
+Fast:    MRecalculate
+Normal:  MRecalculate with DCT=4
+Slow:    MAnalyze + MRecalculate with DCT=4
+Slower:  Calculate diff between DCT=4 and DCT=0 to take the best from both
+Slowest: Calculate diff between DCT=1 and DCT=0 to take the best from both
+Anime:   Slow with BlendOver=40, SkipOver=140
 
 
 

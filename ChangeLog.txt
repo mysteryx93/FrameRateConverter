@@ -1,3 +1,12 @@
+Version 1.2 (2017-09-02)
+- Mask strength now adjusted to produce similar artifacts masking with different DCT values
+- Removed Stripes parameter as Skip isn't practical
+- Added Stp parameter, whether to detect and blend stripes
+- Changed MaskTrh default from 100 to 120
+- Changed BlendOver default from 65 to 70
+- If NewNum is twice the clip's frame rate, set FrameDouble to true by default to preserve source frames
+
+
 Version 1.1 (2017-09-01)
 - Added InterpolateDoubles function to replace double frames with interpolated frames using FrameRateConverter
 - Added DctRe parameter to specify DCT for MRecalculate
@@ -9,5 +18,6 @@ Version 1.1 (2017-09-01)
 - SkipOver now specified for thSCD2 of MMask. Previously, scene changes would cause 2 adjacent frames to be skipped. Specifying thSCD2 causes only 1 frame to be marked for scene change.
 - Updated Avisynth headers in DLL
 - StripeMask: renamed trh parameter to thr
+
 
 Version 1.0 (2017-08-08): Official Release

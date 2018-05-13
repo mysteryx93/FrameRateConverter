@@ -146,8 +146,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     dct_pow = !Recalculate ? 1 : DctRe==3 ? 1.09 : DctRe==2 ? 1.10 : DctRe==4 ? 1.28 : DctRe==1 ? 1.32 : 1
 
     ## jm_fps interpolation
-    superfilt = MSuper(prefilter, hpad=16, vpad=16) # all levels for MAnalyse
-    super = CalcPrefilter ? MSuper(C, hpad=16, vpad=16, levels=1) : superfilt # one level is enough for MRecalculate
+    superfilt = MSuper(prefilter, hpad=16, vpad=16, sharp=1, rfilter=4) # all levels for MAnalyse
+    super = CalcPrefilter ? MSuper(C, hpad=16, vpad=16, levels=1, sharp=1, rfilter=4) : superfilt # one level is enough for MRecalculate
     bak = MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=Dct)
     fwd = MAnalyse(superfilt, isb=false, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=Dct)
     fwd = Recalculate ? MRecalculate(super, fwd, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100, dct=DctRe) : fwd
@@ -156,7 +156,6 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
 
     ## "EM" - error or artifact mask
     # Mask: SAD
-    #gam = .70
     EM = MaskThr > 0 ? C_luma.MMask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=SkipOver) : Blank
     # Mask: Temporal blending
     EMfwd = MaskThr > 0 ? C_luma.MMask(fwd, ml=255, kind=1, gamma=1/gam, thSCD2=SkipOver) : EM
@@ -165,7 +164,6 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     EMocc = MaskOcc > 0 ? C_luma.MMask(bak, ml=MaskOcc, kind=2, gamma=1/gam, ysc=255, thSCD2=SkipOver).mt_inpand() : Blank
     EM = MaskOcc > 0 ? EM.Overlay(EMocc, opacity=.4, mode="lighten", pc_range=true) : EM
     EM = dct_mult!=1 || dct_pow!=1 ? mt_lut(EM, "x " + string(dct_mult) + " * " + string(dct_pow) + " ^") : EM
-
 
     ## For CalcDiff, calculate a 2nd version and create mask to restore from 2nd version the areas that look better
     bak2 = CalcDiff ? MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=0) : nop

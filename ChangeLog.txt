@@ -1,5 +1,5 @@
 Version 1.2.1 (2018-05-12)
-- Slightly improved quality
+- Slightly improved quality. Added sharp=1 and rfilter=4 to MSuper.
 
 Version 1.2 (2017-09-02)
 - Mask strength now adjusted to produce similar artifacts masking with different DCT values

@@ -59,6 +59,9 @@ Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for deb
 
 @ DctRe       - Overrides DCT parameter for MRecalculate (default: Fast=0, Normal=4, Slowest=1)
                 
+@ BlendRatio  - Changes the blend ratio used to fill artifact zones. 0 = frame copy and 100 = full blend.
+                Other values provide a result in-between to eliminate ghost effects. Default = 40.
+
 
 Presets  
 Faster:  Basic interpolation
@@ -106,6 +109,17 @@ StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, StrF,
 @ StrF                  - If > 0, calculates the next frame and set its patterns to this value, between 0 and 255. (default = 0)
 
 @ Lines                 - If true, display the raw contrast lines being used for calculations. If false, the pattern areas between those lines will be marked. (default = false)
+
+
+
+
+## ConvertFpsLimit
+
+Same as ConvertFps but with an extra parameter:
+
+@ Ratio      - Changes the blend ratio. 0 = frame copy and 100 = full blend.
+               Other values provide a result in-between to eliminate ghost effects. Default = 100.
+
 
 
 

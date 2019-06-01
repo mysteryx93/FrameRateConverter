@@ -2,6 +2,7 @@
 #include "conditional.h"
 #include "StripeMask.h"
 #include "ContinuousMask.h"
+#include "ConvertFpsLimit.h"
 
 AVSValue __cdecl Create_ConditionalFilterMT(AVSValue args, void* user_data, IScriptEnvironment* env) {
 	return new ConditionalFilter(args[0].AsClip(), args[1].AsClip(), args[2].AsClip(), args[3], args[4], args[5], args[6].AsBool(false), env);
@@ -55,5 +56,9 @@ extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScri
 	env->AddFunction("ConditionalFilterMT", "cccsss[show]b", Create_ConditionalFilterMT, 0);
 	env->AddFunction("StripeMask", "c[blksize]i[blksizev]i[overlap]i[overlapv]i[thr]i[Comp]i[CompV]i[str]i[strf]i[lines]b", Create_StripeMask, 0);
 	env->AddFunction("ContinuousMask", "c[radius]i", Create_ContinuousMask, 0);
-	return "ConditionalFilterMT";
+	env->AddFunction("ConvertFpsLimit", "ci[]i[zone]i[vbi]i[ratio]i", ConvertFPS::Create, 0);
+	env->AddFunction("ConvertFpsLimit", "cf[zone]i[vbi]i[ratio]i", ConvertFPS::CreateFloat, 0);
+	env->AddFunction("ConvertFpsLimit", "cf[zone]i[vbi]i[ratio]i", ConvertFPS::CreatePreset, 0);
+	env->AddFunction("ConvertFpsLimit", "cc[zone]i[vbi]i[ratio]i", ConvertFPS::CreateFromClip, 0);
+	return "FrameRateConverter";
 }

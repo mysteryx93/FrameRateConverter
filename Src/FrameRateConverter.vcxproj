@@ -23,20 +23,20 @@
     <ProjectGuid>{65E5B18E-B47F-43CB-B398-02E6E82E632E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConditionalFilterMT</RootNamespace>
-    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>FrameRateConverter</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -49,7 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -157,13 +157,22 @@
     <ClInclude Include="conditional.h" />
     <ClInclude Include="conditional_functions.h" />
     <ClInclude Include="ContinuousMask.h" />
+    <ClInclude Include="ConvertFpsLimit.h" />
+    <ClInclude Include="merge.h" />
+    <ClInclude Include="merge_avx2.h" />
     <ClInclude Include="StripeMask.h" />
+    <ClInclude Include="VapourSynth.h" />
+    <ClInclude Include="VSHelper.h" />
+    <ClInclude Include="VSScript.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="conditional.cpp" />
     <ClCompile Include="conditional_functions.cpp" />
     <ClCompile Include="ContinuousMask.cpp" />
+    <ClCompile Include="ConvertFpsLimit.cpp" />
     <ClCompile Include="Init.cpp" />
+    <ClCompile Include="merge.cpp" />
+    <ClCompile Include="merge_avx2.cpp" />
     <ClCompile Include="StripeMask.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,13 @@
+Version 1.3 (2019-06-01)
+- Greatly enhanced quality in artifact areas! Ghost effect eliminated.
+- Added ConvertFpsLimit to blend with reduced blending ratios. Ratio=0 is frame copy and Ratio=100 is full blending. Ratio=50 reduces blending by half.
+- Now perform soft blending with a default ratio of 40, meaning frames blending at 50/50 will blend as 20/80 (50 * .4 = 20)
+- You can adjust frame blending ratio with BlendRatio
+
+
 Version 1.2.1 (2018-05-12)
 - Slightly improved quality. Added sharp=1 and rfilter=4 to MSuper.
+
 
 Version 1.2 (2017-09-02)
 - Mask strength now adjusted to produce similar artifacts masking with different DCT values

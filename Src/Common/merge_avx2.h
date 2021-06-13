@@ -1,7 +1,7 @@
 #ifndef __Merge_AVX2_H__
 #define __Merge_AVX2_H__
 
-#include "avisynth.h"
+#include "../Avisynth/avisynth.h"
 template<typename pixel_t>
 void average_plane_avx2(BYTE *p1, const BYTE *p2, int p1_pitch, int p2_pitch, int rowsize, int height);
 

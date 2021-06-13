@@ -64,7 +64,7 @@
 
 #include "merge_avx2.h"
 #include "merge.h"
-#include "avs/alignment.h"
+#include "../Avisynth/avs/alignment.h"
 #include <stdint.h>
 
 #ifndef _mm256_set_m128i

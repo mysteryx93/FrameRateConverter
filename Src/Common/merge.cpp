@@ -42,7 +42,7 @@
 #include "merge_avx2.h"
 #include <emmintrin.h>
 #include <smmintrin.h>
-#include "avs/alignment.h"
+#include "../Avisynth/avs/alignment.h"
 #include <stdint.h>
 
 

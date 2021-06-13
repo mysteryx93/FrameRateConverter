@@ -1,8 +1,8 @@
-#include "avisynth.h"
+#include "../Avisynth/avisynth.h"
 #include <stdint.h>
 #include <cmath>
-#include "avs/win.h"
-#include "avs/minmax.h"
+#include "../Avisynth/avs/win.h"
+#include "../Avisynth/avs/minmax.h"
 #include "merge.h"
 
 

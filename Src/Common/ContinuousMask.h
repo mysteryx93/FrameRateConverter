@@ -1,5 +1,5 @@
-#include "avisynth.h"
-#include "avs\minmax.h"
+#include "../Avisynth/avisynth.h"
+#include "../Avisynth/avs\minmax.h"
 #include <cstring>
 #include <cstdint>
 

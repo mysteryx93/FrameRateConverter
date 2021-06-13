@@ -1,8 +1,8 @@
 #include "avisynth.h"
 #include "conditional.h"
-#include "StripeMask.h"
-#include "ContinuousMask.h"
-#include "ConvertFpsLimit.h"
+#include "../Common/StripeMask.h"
+#include "../Common/ContinuousMask.h"
+#include "../Common/ConvertFpsLimit.h"
 
 AVSValue __cdecl Create_ConditionalFilterMT(AVSValue args, void* user_data, IScriptEnvironment* env) {
 	return new ConditionalFilter(args[0].AsClip(), args[1].AsClip(), args[2].AsClip(), args[3], args[4], args[5], args[6].AsBool(false), env);

@@ -41,7 +41,7 @@
 #ifndef __Merge_H__
 #define __Merge_H__
 
-#include "avisynth.h"
+#include "../Avisynth/avisynth.h"
 
 #define AVS_UNUSED(x) x
 

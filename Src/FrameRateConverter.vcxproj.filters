@@ -15,84 +15,75 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="avs\alignment.h">
+    <ClInclude Include="Avisynth\avs\alignment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\capi.h">
+    <ClInclude Include="Avisynth\avs\capi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\config.h">
+    <ClInclude Include="Avisynth\avs\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\cpuid.h">
+    <ClInclude Include="Avisynth\avs\cpuid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\minmax.h">
+    <ClInclude Include="Avisynth\avs\minmax.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\types.h">
+    <ClInclude Include="Avisynth\avs\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avs\win.h">
+    <ClInclude Include="Avisynth\avs\win.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avisynth.h">
+    <ClInclude Include="Avisynth\avisynth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="conditional.h">
+    <ClInclude Include="Avisynth\conditional.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="conditional_functions.h">
+    <ClInclude Include="Avisynth\conditional_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StripeMask.h">
+    <ClInclude Include="Common\StripeMask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ContinuousMask.h">
+    <ClInclude Include="Common\ContinuousMask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VapourSynth.h">
+    <ClInclude Include="Common\ConvertFpsLimit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VSHelper.h">
+    <ClInclude Include="Common\merge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VSScript.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConvertFpsLimit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="merge.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="merge_avx2.h">
+    <ClInclude Include="Common\merge_avx2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Init.cpp">
+    <ClCompile Include="Avisynth\Init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="conditional.cpp">
+    <ClCompile Include="Avisynth\conditional.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="conditional_functions.cpp">
+    <ClCompile Include="Avisynth\conditional_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StripeMask.cpp">
+    <ClCompile Include="Common\StripeMask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ContinuousMask.cpp">
+    <ClCompile Include="Common\ContinuousMask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConvertFpsLimit.cpp">
+    <ClCompile Include="Common\ConvertFpsLimit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="merge.cpp">
+    <ClCompile Include="Common\merge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="merge_avx2.cpp">
+    <ClCompile Include="Common\merge_avx2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,14 +1,13 @@
-#include "../Avisynth/avisynth.h"
-#include "../Avisynth/avs/minmax.h"
+#include "../Environments/Common.h"
 #include <math.h>
 #include <cstring>
+#include <Windows.h>
 
 struct PatternStep {
-public:
 	PatternStep() {};
 	PatternStep(int _pos, int _val) : Pos(_pos), Val(_val) {};
-	int Pos;
-	int Val;
+	int Pos = 0;
+	int Val = 0;
 };
 
 enum MaskMode {
@@ -16,12 +15,12 @@ enum MaskMode {
 	Patterns
 };
 
-class StripeMask : public GenericVideoFilter {
-public:
-	StripeMask(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int comp, int compv, int _str, int _strf, bool _lines, IScriptEnvironment* env);
-	~StripeMask();
-	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-	int __stdcall SetCacheHints(int cachehints, int frame_range);
+class StripeMaskBase {
+protected:
+	StripeMaskBase(ICommonVideo* _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, ICommonEnvironment& env);
+	~StripeMaskBase();
+	void ProcessFrame(ICommonFrame& src, ICommonFrame& src2, ICommonFrame& dst, ICommonEnvironment& env);
+
 private:
 	void CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical);
 	void CalcBandAvg(const BYTE* src, int pitch, int width, BYTE* lineAvg, int blk, bool vertical);
@@ -30,6 +29,8 @@ private:
 	void MarkArea(BYTE* dst, int dstPitch, int patternStart, int patternEnd, BYTE strength, int blk, bool vertical);
 	bool CompareHistory(PatternStep* history, int historySize, int length, int blk);
 
+protected:
+	ICommonVideo* source;
 	const int blksize;
 	const int blksizev;
 	const int overlap;

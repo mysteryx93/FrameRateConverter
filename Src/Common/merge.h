@@ -41,85 +41,84 @@
 #ifndef __Merge_H__
 #define __Merge_H__
 
-#include "../Avisynth/avisynth.h"
-
 #define AVS_UNUSED(x) x
+#include "../Environments/Common.h"
 
 
 
 /****************************************************
 ****************************************************/
-
-class MergeChroma : public GenericVideoFilter
-/**
-  * Merge the chroma planes of one clip into another, preserving luma
- **/
-{
-public:
-  MergeChroma(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
-  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-
-  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
-    AVS_UNUSED(frame_range);
-    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
-  }
-
-  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
-
-private:
-  PClip clip;
-  float weight;
-  int pixelsize;
-  int bits_per_pixel;
-};
-
-
-class MergeLuma : public GenericVideoFilter
-/**
-  * Merge the luma plane of one clip into another, preserving chroma
- **/
-{
-public:
-  MergeLuma(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
-  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-
-  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
-    AVS_UNUSED(frame_range);
-    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
-  }
-
-  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
-
-private:
-  PClip clip;
-  float weight;
-  int pixelsize;
-  int bits_per_pixel;
-};
-
-
-class MergeAll : public GenericVideoFilter
-/**
-  * Merge the planes of one clip into another
- **/
-{
-public:
-  MergeAll(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
-  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-
-  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
-    AVS_UNUSED(frame_range);
-    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
-  }
-
-  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
-
-private:
-  PClip clip;
-  float weight;
-  int pixelsize;
-  int bits_per_pixel;
-};
+//
+//class MergeChroma : public GenericVideoFilter
+///**
+//  * Merge the chroma planes of one clip into another, preserving luma
+// **/
+//{
+//public:
+//  MergeChroma(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
+//  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
+//
+//  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
+//    AVS_UNUSED(frame_range);
+//    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
+//  }
+//
+//  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
+//
+//private:
+//  PClip clip;
+//  float weight;
+//  int pixelsize;
+//  int bits_per_pixel;
+//};
+//
+//
+//class MergeLuma : public GenericVideoFilter
+///**
+//  * Merge the luma plane of one clip into another, preserving chroma
+// **/
+//{
+//public:
+//  MergeLuma(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
+//  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
+//
+//  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
+//    AVS_UNUSED(frame_range);
+//    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
+//  }
+//
+//  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
+//
+//private:
+//  PClip clip;
+//  float weight;
+//  int pixelsize;
+//  int bits_per_pixel;
+//};
+//
+//
+//class MergeAll : public GenericVideoFilter
+///**
+//  * Merge the planes of one clip into another
+// **/
+//{
+//public:
+//  MergeAll(PClip _child, PClip _clip, float _weight, IScriptEnvironment* env);  
+//  PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
+//
+//  int __stdcall SetCacheHints(int cachehints, int frame_range) override {
+//    AVS_UNUSED(frame_range);
+//    return cachehints == CACHE_GET_MTMODE ? MT_NICE_FILTER : 0;
+//  }
+//
+//  static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
+//
+//private:
+//  PClip clip;
+//  float weight;
+//  int pixelsize;
+//  int bits_per_pixel;
+//};
 
 typedef void(*MergeFuncPtr) (BYTE *p1, const BYTE *p2, int p1_pitch, int p2_pitch, int rowsize, int height, float weight_f, int weight_i, int invweight_i);
 MergeFuncPtr getMergeFunc(int bits_per_pixel, int cpuFlags, BYTE *srcp, const BYTE *otherp, float weight_f, int &weight_i, int &invweight_i);

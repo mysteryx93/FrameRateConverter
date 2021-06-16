@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{e3645ab9-05da-4c15-9743-20b3b16be7aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Avisynth">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Environments">
+      <UniqueIdentifier>{951d852d-b9b9-4c85-bde2-39a08c16318e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VapourSynth">
+      <UniqueIdentifier>{5e84bcbd-8b7a-4b50-9ffa-cd1eec15f801}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Avisynth\avs\alignment.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\capi.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\config.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\cpuid.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\minmax.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\types.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avs\win.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\avisynth.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\conditional.h">
+      <Filter>Avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\conditional_functions.h">
+      <Filter>Avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ContinuousMaskBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\ConvertFpsLimitBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StripeMaskBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\ConvertFpsLimitAvs.h">
+      <Filter>Avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\StripeMaskAvs.h">
+      <Filter>Avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\ContinuousMaskAvs.h">
+      <Filter>Avisynth</Filter>
+    </ClInclude>
+    <ClInclude Include="Environments\Avisynth.hpp">
+      <Filter>Environments</Filter>
+    </ClInclude>
+    <ClInclude Include="Environments\Common.h">
+      <Filter>Environments</Filter>
+    </ClInclude>
+    <ClInclude Include="Environments\VapourSynth.hpp">
+      <Filter>Environments</Filter>
+    </ClInclude>
+    <ClInclude Include="Avisynth\cpufeatures.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth\VapourSynth.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth\VSHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth\VSScript.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Environments\instrset_detect.h">
+      <Filter>Environments</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\merge.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\merge_avx2.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth\ContinuousMaskVpy.h">
+      <Filter>VapourSynth</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Avisynth\conditional.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Avisynth\conditional_functions.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Avisynth\InitAvs.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\ConvertFpsLimitBase.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\StripeMaskBase.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Avisynth\ConvertFpsLimitAvs.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Avisynth\StripeMaskAvs.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Avisynth\ContinuousMaskAvs.cpp">
+      <Filter>Avisynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\ContinuousMaskBase.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\ConvertFpsFunc.h">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\ConvertFpsFunc.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Environments\instrset_detect.cpp">
+      <Filter>Environments</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\merge.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\merge_avx2.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Environments\VapourSynthFilter.hpp">
+      <Filter>Environments</Filter>
+    </ClCompile>
+    <ClCompile Include="VapourSynth\ContinuousMaskVpy.cpp">
+      <Filter>VapourSynth</Filter>
+    </ClCompile>
+    <ClCompile Include="VapourSynth\InitVpy.cpp">
+      <Filter>VapourSynth</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

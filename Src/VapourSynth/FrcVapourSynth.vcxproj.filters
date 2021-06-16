@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{e3645ab9-05da-4c15-9743-20b3b16be7aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="VapourSynth">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="avs\alignment.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\capi.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\config.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\cpuid.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\minmax.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\types.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avs\win.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="avisynth.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\ContinuousMask.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\ConvertFpsLimit.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\merge.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\merge_avx2.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\StripeMask.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VSHelper.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VSScript.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Common\ContinuousMask.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\ConvertFpsLimit.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\merge.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\merge_avx2.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\StripeMask.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="InitVS.cpp">
+      <Filter>VapourSynth</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

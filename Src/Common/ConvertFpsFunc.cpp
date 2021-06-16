@@ -1,4 +1,4 @@
-#include "ConvertFpsLimit.h"
+#include "ConvertFpsFunc.h"
 
 /*********************************************
  ******    Float and Rational utility   ******
@@ -21,7 +21,7 @@
 
 static bool float_to_frac(float input, unsigned& num, unsigned& den)
 {
-	union { float f; unsigned i; } value;
+	union { float f; unsigned i; } value{};
 	uint32_t mantissa;
 	int exponent;
 
@@ -115,7 +115,7 @@ static bool reduce_float(float value, unsigned& num, unsigned& den)
 		//   ax                     = (n0 - R2 * d0)/(R2 * d1 - n1)
 
 			// bump float to adjacent float value
-		union { float f; uint32_t i; } eps; eps.f = value;
+		union { float f; uint32_t i; } eps{}; eps.f = value;
 		if (UInt32x32To64(n1, den) > UInt32x32To64(num, d1)) {
 			eps.i -= 1;
 		}
@@ -192,77 +192,77 @@ static void reduce_frac(uint32_t& num, uint32_t& den, uint32_t limit)
 	}
 }
 
-
-AVSValue __cdecl ContinuedCreate(AVSValue args, void* key, IScriptEnvironment* env)
-{
-	uint32_t num, den;
-
-	if (args[1].IsInt()) { // num, den[, limit] form
-		if (args[0].IsInt()) {
-			num = args[0].AsInt();
-		}
-		else { // IsFloat
-			num = (uint32_t)args[0].AsFloat();
-			if ((float)num != args[0].AsFloatf()) {
-				env->ThrowError("ContinuedFraction: Numerator must be an integer.\n");
-			}
-		}
-		den = args[1].AsInt();
-		reduce_frac(num, den, (uint32_t)args[2].AsInt(1001));
-	}
-	else { // float[, limit] form
-		if (args[2].IsInt()) {
-			if (float_to_frac(args[0].AsFloatf(), num, den)) {
-				env->ThrowError("ContinuedFraction: Float value out of range for rational pair.\n");
-			}
-			reduce_frac(num, den, (uint32_t)args[2].AsInt());
-		}
-		else {
-			if (reduce_float(args[0].AsFloatf(), num, den)) {
-				env->ThrowError("ContinuedFraction: Float value out of range for rational pair.\n");
-			}
-		}
-	}
-	return AVSValue((int)(key ? num : den));
-}
+//
+//AVSValue __cdecl ContinuedCreate(AVSValue args, void* key, IScriptEnvironment* env)
+//{
+//	uint32_t num, den;
+//
+//	if (args[1].IsInt()) { // num, den[, limit] form
+//		if (args[0].IsInt()) {
+//			num = args[0].AsInt();
+//		}
+//		else { // IsFloat
+//			num = (uint32_t)args[0].AsFloat();
+//			if ((float)num != args[0].AsFloatf()) {
+//				env->ThrowError("ContinuedFraction: Numerator must be an integer.\n");
+//			}
+//		}
+//		den = args[1].AsInt();
+//		reduce_frac(num, den, (uint32_t)args[2].AsInt(1001));
+//	}
+//	else { // float[, limit] form
+//		if (args[2].IsInt()) {
+//			if (float_to_frac(args[0].AsFloatf(), num, den)) {
+//				env->ThrowError("ContinuedFraction: Float value out of range for rational pair.\n");
+//			}
+//			reduce_frac(num, den, (uint32_t)args[2].AsInt());
+//		}
+//		else {
+//			if (reduce_float(args[0].AsFloatf(), num, den)) {
+//				env->ThrowError("ContinuedFraction: Float value out of range for rational pair.\n");
+//			}
+//		}
+//	}
+//	return AVSValue((int)(key ? num : den));
+//}
 
 
 /***************************************
  *******   Float to FPS utility   ******
  ***************************************/
 
-void FloatToFPS(const char* name, float n, uint32_t& num, uint32_t& den, IScriptEnvironment* env)
+void FloatToFPS(const char* name, float n, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
 {
 	if (n <= 0)
-		env->ThrowError("%s: FPS must be greater then 0.\n", name);
+		env.ThrowErrorFormat("%s: FPS must be greater then 0.\n", name);
 
 	float x;
 	uint32_t u = (uint32_t)(n * 1001 + 0.5);
 
 	// Check for the 30000/1001 multiples
-	x = (float)((u / 30000 * 30000) / 1001.0);
+	x = (float)((u / 30000.0 * 30000) / 1001.0);
 	if (x == n) { num = u; den = 1001; return; }
 
 	// Check for the 24000/1001 multiples
-	x = (float)((u / 24000 * 24000) / 1001.0);
+	x = (float)((u / 24000.0 * 24000) / 1001.0);
 	if (x == n) { num = u; den = 1001; return; }
 
 	if (n < 14.986) {
 		// Check for the 30000/1001 factors
-		u = (uint32_t)(30000 / n + 0.5);
-		x = (float)(30000.0 / (u / 1001 * 1001));
+		u = (uint32_t)(30000.0 / n + 0.5);
+		x = (float)(30000.0 / (u / 1001.0 * 1001));
 		if (x == n) { num = 30000; den = u; return; }
 
 		// Check for the 24000/1001 factors
-		u = (uint32_t)(24000 / n + 0.5);
-		x = (float)(24000.0 / (u / 1001 * 1001));
+		u = (uint32_t)(24000.0 / n + 0.5);
+		x = (float)(24000.0 / (u / 1001.0 * 1001));
 		if (x == n) { num = 24000; den = u; return; }
 	}
 
 	// Find the rational pair with the smallest denominator
 	// that is equal to n within the accuracy of an IEEE float.
 	if (reduce_float(n, num, den))
-		env->ThrowError("%s: FPS value is out of range.\n", name);
+		env.ThrowErrorFormat("%s: FPS value is out of range.\n", name);
 
 }
 
@@ -271,7 +271,7 @@ void FloatToFPS(const char* name, float n, uint32_t& num, uint32_t& den, IScript
  *******   Preset to FPS utility   ****** -- Tritcal, IanB Jan 2006
  ****************************************/
 
-void PresetToFPS(const char* name, const char* p, uint32_t& num, uint32_t& den, IScriptEnvironment* env)
+void PresetToFPS(const char* name, const char* p, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
 {
 	if (lstrcmpi(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
 	else if (lstrcmpi(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
@@ -323,244 +323,6 @@ void PresetToFPS(const char* name, const char* p, uint32_t& num, uint32_t& den, 
 		else if (lstrcmpi(p, "120.0"            ) == 0) { num =   120; den =    1; }
 	*/
 	else {
-		env->ThrowError("%s: invalid preset value used.\n", name);
+		env.ThrowErrorFormat("%s: invalid preset value used.\n", name);
 	}
-}
-
-
-/*************************************
- *******   ConvertFPS Filters   ******
- *************************************/
-
-ConvertFPS::ConvertFPS(PClip _child, unsigned new_numerator, unsigned new_denominator, int _zone,
-	int _vbi, int _ratio, IScriptEnvironment* env)
-	: GenericVideoFilter(_child), zone(_zone), vbi(_vbi), lps(0)
-{
-	if (zone >= 0 && !vi.IsYUY2()) // Tritical Jan 2006
-		env->ThrowError("ConvertFpsLimit: zone >= 0 requires YUY2 input");
-	if (_ratio < 0 || _ratio > 100)
-		env->ThrowError("ConvertFpsLimit: ratio must be between 0 (frame copy) and 100 (full blend)");
-
-	ratio = _ratio;
-	fa = int64_t(vi.fps_numerator) * new_denominator;
-	fb = int64_t(vi.fps_denominator) * new_numerator;
-	if (zone >= 0)
-	{
-		if (vbi < 0) vbi = 0;
-		if (vbi > vi.height) vbi = vi.height;
-		lps = int((vi.height + vbi) * fb / fa);
-		if (zone > lps)
-			env->ThrowError("ConvertFPS: 'zone' too large. Maximum allowed %d", lps);
-	}
-	else if (3 * fb < (fa << 1)) {
-		int dec = MulDiv(vi.fps_numerator, 20000, vi.fps_denominator);
-		env->ThrowError("ConvertFPS: New frame rate too small. Must be greater than %d.%04d "
-			"Increase or use 'zone='", dec / 30000, (dec / 3) % 10000);
-	}
-	vi.SetFPS(new_numerator, new_denominator);
-	const int64_t num_frames = (vi.num_frames * fb + (fa >> 1)) / fa;
-	if (num_frames > 0x7FFFFFFF)  // MAXINT
-		env->ThrowError("ConvertFPS: Maximum number of frames exceeded.");
-
-	vi.num_frames = int(num_frames);
-}
-
-
-PVideoFrame __stdcall ConvertFPS::GetFrame(int n, IScriptEnvironment* env)
-{
-	static const int resolution = 10; //bits. Must be >= 4, or modify next line
-	static const int threshold = (1 << (resolution - 4)) * ratio / 100;
-	static const int one = 1 << resolution;
-	static const int half = 1 << (resolution - 1);
-
-	//double nsrc_f, frac_f;
-	//frac_f = modf((double)n * fa / fb, &nsrc_f);
-	// integer versions
-	int nsrc = int(n * fa / fb);
-	int frac = int((((n * fa) % fb) << resolution) / fb);
-
-	double frac_f_from_int = (double)frac / one;
-
-	if (zone < 0) {
-
-		// Mode 1: Blend full frames
-		int mix_ratio = frac;
-
-if (mix_ratio < half)
-	mix_ratio = mix_ratio * ratio / 100;
-else
-	mix_ratio = one - ((one - mix_ratio) * ratio / 100);
-
-		// Don't bother if the blend ratio is small
-		if (mix_ratio < threshold)
-			return child->GetFrame(nsrc, env);
-
-		if (mix_ratio > (one - threshold))
-			return child->GetFrame(nsrc + 1, env);
-
-		float mix_ratio_f = (float)mix_ratio / one;
-
-		PVideoFrame a = child->GetFrame(nsrc, env);
-		PVideoFrame b = child->GetFrame(nsrc + 1, env);
-
-		env->MakeWritable(&a);
-
-		const int planes_y[4] = { PLANAR_Y, PLANAR_U, PLANAR_V, PLANAR_A };
-		const int planes_r[4] = { PLANAR_G, PLANAR_B, PLANAR_R, PLANAR_A };
-		const int* planes;
-
-		int planeCount;
-		planeCount = vi.IsPlanar() ? vi.NumComponents() : 1;
-		planes = (!vi.IsPlanar() || vi.IsYUV() || vi.IsYUVA()) ? planes_y : planes_r;
-
-		const int bits_per_pixel = vi.BitsPerComponent();
-		for (int j = 0; j < planeCount; ++j)
-		{
-			const int plane = planes[j];
-			const BYTE* b_data = b->GetReadPtr(plane);
-			int          b_pitch = b->GetPitch(plane);
-			BYTE* a_data = a->GetWritePtr(plane);
-			int          a_pitch = a->GetPitch(plane);
-			int          row_size = a->GetRowSize(plane);
-			int          height = a->GetHeight(plane);
-
-			// :FIXME: Use fast plane blend routine from Merge here
-			// fixed :)
-			//for (int y = 0; y < height; y++) {
-			//  for (int x = 0; x < row_size; x++)
-			//	a_data[x] = a_data[x] + BYTE(((b_data[x] - a_data[x]) * mix_ratio + half) >> resolution);
-			//  a_data += a_pitch;
-			//  b_data += b_pitch;
-			//};
-			
-			int weight_i;
-			int invweight_i;
-			// float weight = (float)frac_f;
-			MergeFuncPtr weighted_merge_planar = getMergeFunc(bits_per_pixel, env->GetCPUFlags(), a_data, b_data, mix_ratio_f, /*out*/weight_i, /*out*/invweight_i);
-			weighted_merge_planar(a_data, b_data, a_pitch, b_pitch, row_size, height, mix_ratio_f, weight_i, invweight_i);
-		}
-
-		return a;
-
-	}
-	else {
-		// Mode 2: Switch to next frame at the scan line corresponding to the source frame's timing.
-		// If zone > 0, perform a gradual transition, i.e. blend one frame into the next
-		// over the given number of lines.
-
-		PVideoFrame a = child->GetFrame(nsrc, env);
-		PVideoFrame b = child->GetFrame(nsrc + 1, env);
-		const BYTE* b_data = b->GetReadPtr();
-		int          b_pitch = b->GetPitch();
-		const int    row_size = a->GetRowSize();
-		const int    height = a->GetHeight();
-
-
-		BYTE* pd;
-		const BYTE* pa, * pb, * a_data = a->GetReadPtr();
-		int   a_pitch = a->GetPitch();
-
-		int switch_line = (lps * (one - frac)) >> resolution;
-		int top = switch_line - (zone >> 1);
-		int bottom = switch_line + (zone >> 1) - lps;
-		if (bottom > 0 && nsrc > 0) {
-			// Finish the transition from the previous frame
-			switch_line -= lps;
-			top -= lps;
-			nsrc--;
-			b = a;
-			a = child->GetFrame(nsrc, env);
-			b_pitch = a_pitch;
-			b_data = a_data;
-			a_data = a->GetReadPtr();
-			a_pitch = a->GetPitch();
-		}
-		else if (top >= height)
-			return a;
-
-		// Result goes into a new buffer since it can be made up of a number of source frames
-		PVideoFrame    d = env->NewVideoFrame(vi);
-		BYTE* data = d->GetWritePtr();
-		const int      pitch = d->GetPitch();
-		if (top > 0)
-			env->BitBlt(data, pitch, a_data, a_pitch, row_size, top);
-	loop:
-		bottom = min(switch_line + (zone >> 1), height);
-		int safe_top = max(top, 0);
-		pd = data + safe_top * pitch;
-		pa = a_data + safe_top * a_pitch;
-		pb = b_data + safe_top * b_pitch;
-		for (int y = safe_top; y < bottom; y++) {
-			int scale = y - top;
-			for (int x = 0; x < row_size; x++)
-				pd[x] = BYTE(pa[x] + ((pb[x] - pa[x]) * scale + (zone >> 1)) / zone);
-			pd += pitch;
-			pa += a_pitch;
-			pb += b_pitch;
-		}
-		switch_line += lps;
-		top = switch_line - (zone >> 1);
-		int limit = min(height, top);
-		if (bottom < limit) {
-			pd = data + bottom * pitch;
-			pb = b_data + bottom * b_pitch;
-			env->BitBlt(pd, pitch, pb, b_pitch, row_size, limit - bottom);
-		}
-		if (top < height) {
-			nsrc++;
-			a = b;
-			b = child->GetFrame(nsrc + 1, env);
-			a_pitch = b_pitch;
-			b_pitch = b->GetPitch();
-			a_data = b_data;
-			b_data = b->GetReadPtr();
-			goto loop;
-		}
-		return d;
-	}
-}
-
-
-bool __stdcall ConvertFPS::GetParity(int n)
-{
-	if (vi.IsFieldBased())
-		return child->GetParity(0) ^ (n & 1);
-	else
-		return child->GetParity(0);
-}
-
-AVSValue __cdecl ConvertFPS::Create(AVSValue args, void*, IScriptEnvironment* env)
-{
-	return new ConvertFPS(args[0].AsClip(), args[1].AsInt(), args[2].AsInt(1),
-		args[3].AsInt(-1), args[4].AsInt(0), args[5].AsInt(100), env);
-}
-
-
-AVSValue __cdecl ConvertFPS::CreateFloat(AVSValue args, void*, IScriptEnvironment* env)
-{
-	uint32_t num, den;
-
-	FloatToFPS("ConvertFPS", (float)args[1].AsFloat(), num, den, env);
-	return new ConvertFPS(args[0].AsClip(), num, den, args[2].AsInt(-1), args[3].AsInt(0), args[4].AsInt(100), env);
-}
-
-// Tritical Jan 2006
-AVSValue __cdecl ConvertFPS::CreatePreset(AVSValue args, void*, IScriptEnvironment* env)
-{
-	uint32_t num, den;
-
-	PresetToFPS("ConvertFPS", args[1].AsString(), num, den, env);
-	return new ConvertFPS(args[0].AsClip(), num, den, args[2].AsInt(-1), args[3].AsInt(0), args[4].AsInt(100), env);
-}
-
-AVSValue __cdecl ConvertFPS::CreateFromClip(AVSValue args, void*, IScriptEnvironment* env)
-{
-	const VideoInfo& vi = args[1].AsClip()->GetVideoInfo();
-
-	if (!vi.HasVideo()) {
-		env->ThrowError("ConvertFPS: The clip supplied to get the FPS from must contain video.");
-	}
-
-	return new ConvertFPS(args[0].AsClip(), vi.fps_numerator, vi.fps_denominator,
-		args[2].AsInt(-1), args[3].AsInt(0), args[4].AsInt(100), env);
 }

@@ -20,11 +20,11 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{65E5B18E-B47F-43CB-B398-02E6E82E632E}</ProjectGuid>
+    <ProjectGuid>{3826CF45-A338-4BF5-A1F5-CFC79C1B1F60}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConditionalFilterMT</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>FrameRateConverter</ProjectName>
+    <ProjectName>FrcVapourSynth</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -146,31 +146,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Avisynth\avisynth.h" />
-    <ClInclude Include="Avisynth\avs\alignment.h" />
-    <ClInclude Include="Avisynth\avs\capi.h" />
-    <ClInclude Include="Avisynth\avs\config.h" />
-    <ClInclude Include="Avisynth\avs\cpuid.h" />
-    <ClInclude Include="Avisynth\avs\minmax.h" />
-    <ClInclude Include="Avisynth\avs\types.h" />
-    <ClInclude Include="Avisynth\avs\win.h" />
-    <ClInclude Include="Avisynth\conditional.h" />
-    <ClInclude Include="Avisynth\conditional_functions.h" />
-    <ClInclude Include="Common\ContinuousMask.h" />
-    <ClInclude Include="Common\ConvertFpsLimit.h" />
-    <ClInclude Include="Common\merge.h" />
-    <ClInclude Include="Common\merge_avx2.h" />
-    <ClInclude Include="Common\StripeMask.h" />
+    <ClInclude Include="avisynth.h" />
+    <ClInclude Include="avs\alignment.h" />
+    <ClInclude Include="avs\capi.h" />
+    <ClInclude Include="avs\config.h" />
+    <ClInclude Include="avs\cpuid.h" />
+    <ClInclude Include="avs\minmax.h" />
+    <ClInclude Include="avs\types.h" />
+    <ClInclude Include="avs\win.h" />
+    <ClInclude Include="..\Common\ContinuousMask.h" />
+    <ClInclude Include="..\Common\ConvertFpsLimit.h" />
+    <ClInclude Include="..\Common\merge.h" />
+    <ClInclude Include="..\Common\merge_avx2.h" />
+    <ClInclude Include="..\Common\StripeMask.h" />
+    <ClInclude Include="VapourSynth.h" />
+    <ClInclude Include="VSHelper.h" />
+    <ClInclude Include="VSScript.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Avisynth\conditional.cpp" />
-    <ClCompile Include="Avisynth\conditional_functions.cpp" />
-    <ClCompile Include="Common\ContinuousMask.cpp" />
-    <ClCompile Include="Common\ConvertFpsLimit.cpp" />
-    <ClCompile Include="Avisynth\Init.cpp" />
-    <ClCompile Include="Common\merge.cpp" />
-    <ClCompile Include="Common\merge_avx2.cpp" />
-    <ClCompile Include="Common\StripeMask.cpp" />
+    <ClCompile Include="..\Common\ContinuousMask.cpp" />
+    <ClCompile Include="..\Common\ConvertFpsLimit.cpp" />
+    <ClCompile Include="..\Common\merge.cpp" />
+    <ClCompile Include="..\Common\merge_avx2.cpp" />
+    <ClCompile Include="..\Common\StripeMask.cpp" />
+    <ClCompile Include="InitVS.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

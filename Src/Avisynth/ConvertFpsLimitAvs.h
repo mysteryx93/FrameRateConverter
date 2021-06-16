@@ -1,19 +1,15 @@
-#include "../Avisynth/avisynth.h"
-#include <stdint.h>
-#include <cmath>
-#include "../Avisynth/avs/win.h"
-#include "../Avisynth/avs/minmax.h"
-#include "merge.h"
+#pragma once
+#include "../Common/ConvertFpsLimitBase.h"
+#include "../Environments/Avisynth.hpp"
+#include "../Common/ConvertFpsFunc.h"
 
-
-class ConvertFPS : public GenericVideoFilter
+class ConvertFPS : public GenericVideoFilter, ConvertFPSLimitBase
 	/**
 	  * Class to change the framerate, attempting to smooth the transitions
 	 **/
 {
 public:
-	ConvertFPS(PClip _child, unsigned new_numerator, unsigned new_denominator, int _zone,
-		int _vbi, int _ratio, IScriptEnvironment* env);
+	ConvertFPS(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env);
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 	bool __stdcall GetParity(int n);
 
@@ -27,10 +23,5 @@ public:
 	static AVSValue __cdecl CreateFromClip(AVSValue args, void*, IScriptEnvironment* env);
 
 private:
-	int64_t fa, fb;
-	int zone;
-	//Variables used in switch mode only
-	int vbi;    //Vertical Blanking Interval (lines)
-	int lps;    //Lines per source frame
 	int ratio;
 };

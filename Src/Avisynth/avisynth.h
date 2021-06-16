@@ -358,7 +358,7 @@ extern const AVS_Linkage* AVS_linkage;
 #endif
 
 struct VideoInfo {
-  int width, height;    // width=0 means no video
+  int width, height;    // width=0 means no source
   unsigned fps_numerator, fps_denominator;
   int num_frames;
   // This is more extensible than previous versions. More properties can be added seeminglesly.
@@ -731,7 +731,7 @@ enum {
 
 
 // VideoFrameBuffer holds information about a memory block which is used
-// for video data.  For efficiency, instances of this class are not deleted
+// for source data.  For efficiency, instances of this class are not deleted
 // when the refcount reaches zero; instead they're stored in a linked list
 // to be reused.  The instances are deleted when the corresponding AVS
 // file is closed.
@@ -833,7 +833,7 @@ enum CachePolicyHint {
   // do not use them in new plugins
 
   // New 2.6 explicitly defined cache hints.
-  CACHE_NOTHING=10, // Do not cache video.
+  CACHE_NOTHING=10, // Do not cache source.
   CACHE_WINDOW=11, // Hard protect upto X frames within a range of X from the current frame N.
   CACHE_GENERIC=12, // LRU cache upto X frames.
   CACHE_FORCE_GENERIC=13, // LRU cache upto X frames, override any previous CACHE_WINDOW.
@@ -851,7 +851,7 @@ enum CachePolicyHint {
   CACHE_GET_AUDIO_SIZE=71, // Get the current audio cache size.
 
   CACHE_PREFETCH_FRAME=100, // Queue request to prefetch frame N.
-  CACHE_PREFETCH_GO=101, // Action video prefetches.
+  CACHE_PREFETCH_GO=101, // Action source prefetches.
 
   CACHE_PREFETCH_AUDIO_BEGIN=120, // Begin queue request transaction to prefetch audio (take critical section).
   CACHE_PREFETCH_AUDIO_STARTLO=121, // Set low 32 bits of start.
@@ -860,8 +860,8 @@ enum CachePolicyHint {
   CACHE_PREFETCH_AUDIO_COMMIT=124, // Enqueue request transaction to prefetch audio (release critical section).
   CACHE_PREFETCH_AUDIO_GO=125, // Action audio prefetches.
 
-  CACHE_GETCHILD_CACHE_MODE=200, // Cache ask Child for desired video cache mode.
-  CACHE_GETCHILD_CACHE_SIZE=201, // Cache ask Child for desired video cache size.
+  CACHE_GETCHILD_CACHE_MODE=200, // Cache ask Child for desired source cache mode.
+  CACHE_GETCHILD_CACHE_SIZE=201, // Cache ask Child for desired source cache size.
   CACHE_GETCHILD_AUDIO_MODE=202, // Cache ask Child for desired audio cache mode.
   CACHE_GETCHILD_AUDIO_SIZE=203, // Cache ask Child for desired audio cache size.
 

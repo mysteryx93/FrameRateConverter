@@ -44,6 +44,11 @@
  * based on an evaluator.
  ********************************/
 
+AVSValue __cdecl ConditionalFilter::Create(AVSValue args, void* user_data, IScriptEnvironment* env)
+{
+	return new ConditionalFilter(args[0].AsClip(), args[1].AsClip(), args[2].AsClip(), args[3], args[4], args[5], args[6].AsBool(false), env);
+}
+
 ConditionalFilter::ConditionalFilter(PClip _child, PClip _source1, PClip _source2,
 	AVSValue  _condition1, AVSValue  _evaluator, AVSValue  _condition2,
 	bool _show, IScriptEnvironment* env) :

@@ -3,11 +3,17 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#pragma warning(disable:26812)
+
 typedef unsigned char   BYTE;
 
 struct ICommonVideo
 {
 	void* Ref = nullptr;
+	ICommonVideo(void* ref) :
+		Ref(ref)
+	{
+	}
 	virtual ~ICommonVideo() {};
 	virtual int FpsNum() = 0;
 	virtual int FpsDen() = 0;
@@ -25,7 +31,8 @@ struct ICommonVideo
 	virtual bool HasAlpha() = 0;
 };
 
-struct ICommonFrame {
+struct ICommonFrame
+{
 	void* Ref = nullptr;
 	ICommonFrame(void* ref) :
 		Ref(ref)
@@ -56,7 +63,7 @@ struct ICommonEnvironment
 		va_end(args);
 	}
 	virtual void ThrowError(const char* message) = 0;
-	virtual void MakeWritable(ICommonFrame& frame) = 0;
+	//virtual void MakeWritable(ICommonFrame& frame) = 0;
 
 	const int GetCpuSupport()
 	{

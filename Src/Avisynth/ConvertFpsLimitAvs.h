@@ -1,15 +1,14 @@
 #pragma once
 #include "../Common/ConvertFpsLimitBase.h"
 #include "../Environments/Avisynth.hpp"
-#include "../Common/ConvertFpsFunc.h"
 
-class ConvertFPS : public GenericVideoFilter, ConvertFPSLimitBase
+class ConvertFpsLimitAvs: public GenericVideoFilter, public ConvertFPSLimitBase
 	/**
 	  * Class to change the framerate, attempting to smooth the transitions
 	 **/
 {
 public:
-	ConvertFPS(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env);
+	ConvertFpsLimitAvs(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env);
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 	bool __stdcall GetParity(int n);
 
@@ -21,7 +20,4 @@ public:
 	static AVSValue __cdecl CreateFloat(AVSValue args, void*, IScriptEnvironment* env);
 	static AVSValue __cdecl CreatePreset(AVSValue args, void*, IScriptEnvironment* env);
 	static AVSValue __cdecl CreateFromClip(AVSValue args, void*, IScriptEnvironment* env);
-
-private:
-	int ratio;
 };

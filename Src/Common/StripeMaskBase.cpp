@@ -1,6 +1,6 @@
 #include "StripeMaskBase.h"
 
-StripeMaskBase::StripeMaskBase(ICommonVideo* _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, ICommonEnvironment& env) :
+StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines) :
 	source(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), strf(_strf), lines(_lines)
 {
 	if (!_child->IsYUV() && !_child->IsY())

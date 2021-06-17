@@ -1,6 +1,8 @@
 #include "VapourSynth.h"
 #include "VSHelper.h"
 #include "ContinuousMaskVpy.h"
+#include "StripeMaskVpy.h"
+#include "ConvertFpsLimitVpy.h"
 
 //// This function is responsible for validating arguments and creating a new filter
 //static void VS_CC CreateContinuousMask(const VSMap *in, VSMap *out, void *userData, VSCore *core, const VSAPI *vsapi) {
@@ -60,20 +62,66 @@
 //	vsapi->createFilter(in, out, "Invert", invertInit, invertGetFrame, invertFree, fmParallel, 0, data, core);
 //}
 
+//
+//class MyBase
+//{
+//public:
+//	MyBase()
+//	{
+//		void* p = this;
+//		MyBase* cast = (MyBase*)p;
+//		cast->Init();
+//	}
+//	virtual void Init() = 0;
+//};
+//
+//class MyDerived : MyBase
+//{
+//public:
+//	virtual void Init()
+//	{
+//	}
+//};
+
 VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegisterFunction registerFunc, VSPlugin *plugin)
 {
 	configFunc("com.vapoursynth.frc", "frc", "Frame Rate Connverter", VAPOURSYNTH_API_VERSION, 1, plugin);
 	registerFunc("ContinuousMask",
 		"clip:clip;"
-		"radius:int;",
+		"radius:int:opt;",
 		ContinuousMaskVpy::Create, 0, plugin);
-	//registerFunc("ConditionalFilterMT", 
-	//	"clip:clip;"
-	//	"source1:clip;"
-	//	"source2:clip;"
-	//	"condition1:data;"
-	//	"evaluator:data;"
-	//	"condition2:data;"
-	//	"show:int:opt",
-	//	invertCreate, 0, plugin);
+	registerFunc("StripeMask", 
+		"clip:clip;"
+		"blkSize:int:opt;"
+		"blkSizeV:int:opt;"
+		"overlap:int:opt;"
+		"overlapV:int:opt;"
+		"thr:int:opt;"
+		"comp:int:opt;"
+		"compV:int:opt;"
+		"str:int:opt;"
+		"strf:int:opt;"
+		"lines:int:opt;",
+		StripeMaskVpy::Create, 0, plugin);
+	registerFunc("ConvertFpsLimit",
+		"clip:clip;"
+		"num:int;"
+		"den:int;"
+		"ratio:int:opt;",
+		ConvertFpsLimitVpy::Create, 0, plugin);
+	registerFunc("ConvertFpsLimit",
+		"clip:clip;"
+		"fps:float;"
+		"ratio:int:opt;",
+		ConvertFpsLimitVpy::CreateFloat, 0, plugin);
+	registerFunc("ConvertFpsLimit",
+		"clip:clip;"
+		"fps:data;"
+		"ratio:int:opt;",
+		ConvertFpsLimitVpy::CreatePreset, 0, plugin);
+	registerFunc("ConvertFpsLimit",
+		"clip:clip;"
+		"fps:clip;"
+		"ratio:int:opt;",
+		ConvertFpsLimitVpy::CreateFromClip, 0, plugin);
 }

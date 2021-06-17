@@ -2,26 +2,25 @@
 
 void VS_CC ContinuousMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
 {
-	int err;
-	VSNodeRef* src = api->propGetNode(in, "clip", 0, &err);
-	int radius = api->propGetInt(in, "radius", 1, &err);
-	if (err)
-		radius = 16;
+    VpyPropReader prop = VpyPropReader(api, in);
+    VSNodeRef* src = prop.GetNode("clip");
+    int radius = prop.GetInt("radius", 16);
 
-	new ContinuousMaskVpy(in, out, src, core, api, radius);
+	auto f = new ContinuousMaskVpy(in, out, src, core, api, radius);
+    f->CreateFilter(in, out);
 }
 
 ContinuousMaskVpy::ContinuousMaskVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, int _radius) :
-	VapourSynthFilter(in, out, node, core, api),
-	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(api, core, out), _radius)
+    VpyFilter(in, out, node, core, api),
+	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(api, core), _radius)
 {
 }
 
-void ContinuousMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node, VSCore* core, const VSAPI* api)
+void ContinuousMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node)
 {
 }
 
-VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VSCore* core, const VSAPI* api)
+VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx)
 {
     if (activationReason == arInitial)
     {
@@ -30,7 +29,7 @@ VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** fram
     else if (activationReason == arAllFramesReady)
     {
         const VSFrameRef* src = api->getFrameFilter(n, Node, frameCtx);
-        VSFrameRef* dst = api->newVideoFrame(VInfo->format, VInfo->width, VInfo->height, src, core);
+        VSFrameRef* dst = api->newVideoFrame(viSrc->format, viSrc->width, viSrc->height, src, core);
 
         ProcessFrame(VpyFrame(src, api), VpyFrame(dst, api));
 
@@ -41,6 +40,6 @@ VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** fram
     return nullptr;
 }
 
-void ContinuousMaskVpy::Free(VSCore* core, const VSAPI* api)
+void ContinuousMaskVpy::Free()
 {
 }

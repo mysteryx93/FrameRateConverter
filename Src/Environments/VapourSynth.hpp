@@ -7,10 +7,10 @@
 struct VpyEnvironment : public ICommonEnvironment {
 	const VSAPI* Api;
 	VSCore* Core;
-	VSMap* Out;
+	// VSMap* Out;
 
-	VpyEnvironment(const VSAPI* _api, VSCore* _core, VSMap* _out) :
-		Api(_api), Out(_out), Core(_core)
+	VpyEnvironment(const VSAPI* _api, VSCore* _core) :
+		Api(_api), Core(_core)
 	{
 	}
 
@@ -22,17 +22,19 @@ struct VpyEnvironment : public ICommonEnvironment {
 
 	void MakeWritable(ICommonFrame& frame)
 	{
-		frame.Ref = Api->copyFrame(static_cast<VSFrameRef*>(frame.Ref), Core);
+		auto Copy = Api->copyFrame(static_cast<VSFrameRef*>(frame.Ref), Core);
+		Api->freeFrame((VSFrameRef*)frame.Ref);
+		frame.Ref = Copy;
 	}
 };
 
 struct VpyVideo : ICommonVideo
 {
-	void* Ref;
 	const VSVideoInfo* VInfo;
 
 	VpyVideo(VSNodeRef* _video, const VSAPI* _api) :
-		Ref(_video), VInfo(_video ? _api->getVideoInfo(_video) : nullptr)
+		ICommonVideo(_video),
+		VInfo(_video ? _api->getVideoInfo(_video) : nullptr)
 	{
 	}
 
@@ -104,30 +106,32 @@ struct VpyVideo : ICommonVideo
 
 struct VpyFrame : public ICommonFrame
 {
-	//void* Ref;
 	const VSAPI* Api;
-	const VSFrameRef* Frame;
+	VSFrameRef* Frame()
+	{
+		return (VSFrameRef*)Ref;
+	}
 
 	VpyFrame(VSFrameRef* _frame, const VSAPI* _api) :
 		ICommonFrame(_frame),
-		Api(_api), Frame(_frame)
+		Api(_api)
 	{
 	}
 
 	VpyFrame(const VSFrameRef* _frame, const VSAPI* _api) :
 		ICommonFrame((VSFrameRef*)_frame),
-		Api(_api), Frame(_frame)
+		Api(_api)
 	{
 	}
 
 	bool HasValue()
 	{
-		return Frame;
+		return Ref;
 	}
 
 	int GetStride(int plane = 0)
 	{
-		return Api->getStride(Frame, plane);
+		return Api->getStride(Frame(), plane);
 	}
 
 	int GetRowSize(int plane = 0)
@@ -137,31 +141,31 @@ struct VpyFrame : public ICommonFrame
 
 	int GetWidth(int plane = 0)
 	{
-		return Api->getFrameWidth(Frame, plane);
+		return Api->getFrameWidth(Frame(), plane);
 	}
 
 	int GetHeight(int plane = 0)
 	{
-		return Api->getFrameHeight(Frame, plane);
+		return Api->getFrameHeight(Frame(), plane);
 	}
 
 	int BitsPerSample()
 	{
-		return Api->getFrameFormat(Frame)->bitsPerSample;
+		return Api->getFrameFormat(Frame())->bitsPerSample;
 	}
 
 	int BytesPerSample()
 	{
-		return Api->getFrameFormat(Frame)->bytesPerSample;
+		return Api->getFrameFormat(Frame())->bytesPerSample;
 	}
 
 	BYTE* GetWritePtr(int plane = 0)
 	{
-		return Api->getWritePtr((VSFrameRef*)Frame, plane);
+		return Api->getWritePtr(Frame(), plane);
 	}
 
 	const BYTE* GetReadPtr(int plane = 0)
 	{
-		return Api->getReadPtr(Frame, plane);
+		return Api->getReadPtr(Frame(), plane);
 	}
 };

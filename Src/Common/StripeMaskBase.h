@@ -17,7 +17,7 @@ enum MaskMode {
 
 class StripeMaskBase {
 protected:
-	StripeMaskBase(ICommonVideo* _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, ICommonEnvironment& env);
+	StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines);
 	~StripeMaskBase();
 	void ProcessFrame(ICommonFrame& src, ICommonFrame& src2, ICommonFrame& dst, ICommonEnvironment& env);
 

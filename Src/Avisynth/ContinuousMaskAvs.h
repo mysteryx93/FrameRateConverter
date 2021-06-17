@@ -2,11 +2,12 @@
 #include "../Environments/Avisynth.hpp"
 #include "../Common/ContinuousMaskBase.h"
 
-class ContinuousMask : public GenericVideoFilter, public ContinuousMaskBase
+class ContinuousMaskAvs : public GenericVideoFilter, public ContinuousMaskBase
 {
 public:
-	ContinuousMask(PClip _child, int _radius, IScriptEnvironment* env);
-	~ContinuousMask() {}
+	static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
+	ContinuousMaskAvs(PClip _child, int _radius, IScriptEnvironment* env);
+	~ContinuousMaskAvs() {}
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 	int __stdcall SetCacheHints(int cachehints, int frame_range);
 };

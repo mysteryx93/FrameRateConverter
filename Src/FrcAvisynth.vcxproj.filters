@@ -105,6 +105,12 @@
     <ClInclude Include="VapourSynth\ContinuousMaskVpy.h">
       <Filter>VapourSynth</Filter>
     </ClInclude>
+    <ClInclude Include="VapourSynth\StripeMaskVpy.h">
+      <Filter>VapourSynth</Filter>
+    </ClInclude>
+    <ClInclude Include="VapourSynth\ConvertFpsLimitVpy.h">
+      <Filter>VapourSynth</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Avisynth\conditional.cpp">
@@ -134,12 +140,6 @@
     <ClCompile Include="Common\ContinuousMaskBase.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\ConvertFpsFunc.h">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Common\ConvertFpsFunc.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Environments\instrset_detect.cpp">
       <Filter>Environments</Filter>
     </ClCompile>
@@ -149,13 +149,22 @@
     <ClCompile Include="Common\merge_avx2.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Environments\VapourSynthFilter.hpp">
+    <ClCompile Include="Environments\VpyFilter.hpp">
       <Filter>Environments</Filter>
     </ClCompile>
     <ClCompile Include="VapourSynth\ContinuousMaskVpy.cpp">
       <Filter>VapourSynth</Filter>
     </ClCompile>
     <ClCompile Include="VapourSynth\InitVpy.cpp">
+      <Filter>VapourSynth</Filter>
+    </ClCompile>
+    <ClCompile Include="VapourSynth\StripeMaskVpy.cpp">
+      <Filter>VapourSynth</Filter>
+    </ClCompile>
+    <ClCompile Include="Environments\VpyPropReader.hpp">
+      <Filter>Environments</Filter>
+    </ClCompile>
+    <ClCompile Include="VapourSynth\ConvertFpsLimitVpy.cpp">
       <Filter>VapourSynth</Filter>
     </ClCompile>
   </ItemGroup>

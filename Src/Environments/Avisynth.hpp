@@ -24,11 +24,11 @@ struct AvsEnvironment : public ICommonEnvironment {
 
 struct AvsVideo : public ICommonVideo
 {
-	void* Ref;
 	const VideoInfo VInfo;
 
 	AvsVideo(PClip _video) :
-		Ref(_video), VInfo(_video ? _video->GetVideoInfo() : VideoInfo())
+		ICommonVideo(_video), 
+		VInfo(_video ? _video->GetVideoInfo() : VideoInfo())
 	{
 	}
 
@@ -114,8 +114,6 @@ struct AvsFrame : public ICommonFrame
 		return Frame;
 	}
 
-#pragma warning(push)
-#pragma warning(disable:26812)
 	// Convert plane index to Avisynth plane flag.
 	int GetPlane(int plane)
 	{
@@ -132,7 +130,6 @@ struct AvsFrame : public ICommonFrame
 		}
 		return plane == 0 ? 0 : throw std::string("Invalid plane index.");
 	}
-#pragma warning(pop)
 
 	int GetStride(int plane = 0)
 	{

@@ -26,6 +26,20 @@ struct VpyEnvironment : public ICommonEnvironment {
 		Api->freeFrame((VSFrameRef*)frame.Ref);
 		frame.Ref = Copy;
 	}
+
+	VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* Args)
+	{
+		auto Plugin = Api->getPluginByNs(ns, Core);
+		auto ret = Api->invoke(Plugin, func, Args);
+		if (Api->getError(ret)) {
+			// Api->setError(out, api->getError(ret));
+			Api->freeMap(ret);
+			return nullptr;
+		}
+		auto Result = Api->propGetNode(ret, "clip", 0, NULL);
+		Api->freeMap(ret);
+		return Result;
+	}
 };
 
 struct VpyVideo : ICommonVideo

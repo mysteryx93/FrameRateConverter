@@ -2,10 +2,8 @@
 
 void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
 {
-	//new StripeMaskVpy(in, out, src, core, api, radius);
-
 	VpyPropReader prop = VpyPropReader(api, in);
-	VSNodeRef* Input = prop.GetNode("clip");
+	auto InClip = prop.GetNode("clip");
 	int BlkSize = prop.GetInt("blkSize", 16);
 	int BlkSizeV = prop.GetInt("blkSizeV", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
@@ -17,36 +15,53 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int Strf = prop.GetInt("strf", 0);
 	bool Lines = prop.GetInt("lines", false);
 
-	//// Convert input to linear (gamma 2.2)
-	//AVSValue sargs[2] = { Input, ((1.0 / 2.2) - 1.0) * 256.0 };
-	//const char* nargs[2] = { 0, "gamma_y" };
-	//Input = env->Invoke("ColorYUV", AVSValue(sargs, 2), nargs).AsClip();
+	auto Input = InClip;
+	auto Vi = api->getVideoInfo(InClip);
+	bool BitDepth = Vi->format->bitsPerSample > 8;
 
-	auto Vi = api->getVideoInfo(Input);
-	bool ReduceBits = Vi->format->bitsPerSample > 8;
-
-	//// Convert input to 8-bit; nothing to gain in processing at higher bit-depth.
-	VSPlugin* Plugin = api->getPluginByNs("resize", core);
-	if (ReduceBits)
+	// FMTC transfer only supports RGBS format.
+	VpyEnvironment Env = VpyEnvironment(api, core);
+	VSMap* Args = api->createMap();
+	api->propSetNode(Args, "clip", Input, paReplace);
+	api->propSetInt(Args, "format", pfGray16, paReplace);
+	Input = Env.InvokeClip("resize", "Point", Args);
+	if (Input)
 	{
-		VSMap* Args = api->createMap();
+		// Convert to linear light.
+		api->clearMap(Args);
 		api->propSetNode(Args, "clip", Input, paReplace);
-		api->propSetInt(Args, "format", pfGray8, paReplace);
-		out = api->invoke(Plugin, "Bicubic", Args);
-		api->freeMap(Args);
+		api->propSetData(Args, "transs", "709", -1, paReplace);
+		api->propSetData(Args, "transd", "linear", -1, paReplace);
+		// api->propSetInt(Args, "fulls", 0, paReplace);
+		Input = Env.InvokeClip("fmtc", "transfer", Args);
+		if (Input)
+		{
+			// Convert to GRAY8 for processing.
+			api->clearMap(Args);
+			api->propSetNode(Args, "clip", Input, paReplace);
+			api->propSetInt(Args, "format", pfGray8, paReplace);
+			Input = Env.InvokeClip("resize", "Point", Args);
+			if (Input)
+			{
+				auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
+				f->CreateFilter(in, out);
+
+				// Convert back to original bit depth.
+				//if (BitDepth > 8)
+				//{
+				//	api->clearMap(Args);
+				//	api->propSetNode(Args, "clip", Input, paReplace);
+				//	api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
+				//	Input = Env.InvokeClip("resize", "Point", Args);
+				//}
+			}
+		}
 	}
 
-	auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
-	f->CreateFilter(in, out);
-
-	//// Convert back to original bit depth.
-	if (ReduceBits)
+	api->freeMap(Args);
+	if (!Input)
 	{
-		VSMap* Args = api->createMap();
-		api->propSetNode(Args, "clip", Input, paReplace);
-		api->propSetInt(Args, "format", Vi->format->id, paReplace);
-		out = api->invoke(Plugin, "Bicubic", Args);
-		api->freeMap(Args);
+		api->freeNode(InClip);
 	}
 }
 
@@ -68,6 +83,10 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 	if (activationReason == arInitial)
 	{
 		api->requestFrameFilter(n, Node, frameCtx);
+		if (strf > 0 && n < viSrc->numFrames - 1)
+		{
+			api->requestFrameFilter(n + 1, Node, frameCtx);
+		}
 	}
 	else if (activationReason == arAllFramesReady)
 	{
@@ -77,8 +96,9 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 		{
 			src2 = api->getFrameFilter(n + 1, Node, frameCtx);
 		}
-		VSFrameRef* dst = api->newVideoFrame(viDst.format, viDst.width, viDst.height, src, core);
+		//auto dst = api->copyFrame(src, core);
 
+		VSFrameRef* dst = api->newVideoFrame(viDst.format, viDst.width, viDst.height, src, core);
 		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), VpyEnvironment(api, core));
 
 		api->freeFrame(src);

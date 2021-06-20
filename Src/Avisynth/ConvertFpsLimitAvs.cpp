@@ -2,7 +2,7 @@
 
 ConvertFpsLimitAvs::ConvertFpsLimitAvs(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env) :
 	GenericVideoFilter(_child),
-	ConvertFPSLimitBase(new AvsVideo(_child), AvsEnvironment(env), new_numerator, new_denominator, _ratio)
+	ConvertFPSLimitBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), new_numerator, new_denominator, _ratio)
 {
 	vi.SetFPS(new_numerator, new_denominator);
 	const int64_t num_frames = (vi.num_frames * fb + (fa >> 1)) / fa;
@@ -17,7 +17,7 @@ PVideoFrame __stdcall ConvertFpsLimitAvs::GetFrame(int n, IScriptEnvironment* en
 	PVideoFrame src = child->GetFrame(nsrc, env);
 	PVideoFrame src2 = child->GetFrame(nsrc + 1, env);
 	env->MakeWritable(&src);
-	ICommonFrame& Result = ProcessFrame(n, AvsFrame(src, vi), AvsFrame(src2, vi), AvsEnvironment(env));
+	ICommonFrame& Result = ProcessFrame(n, AvsFrame(src, vi), AvsFrame(src2, vi), AvsEnvironment(PluginName, env));
 	return *(PVideoFrame*)Result.Ref;
 }
 
@@ -37,7 +37,7 @@ AVSValue __cdecl ConvertFpsLimitAvs::Create(AVSValue args, void*, IScriptEnviron
 AVSValue __cdecl ConvertFpsLimitAvs::CreateFloat(AVSValue args, void*, IScriptEnvironment* env)
 {
 	uint32_t num, den;
-	ConvertFpsLimitAvs::FloatToFPS("ConvertFpsLimit", (float)args[1].AsFloat(), num, den, AvsEnvironment(env));
+	ConvertFpsLimitAvs::FloatToFPS((float)args[1].AsFloat(), num, den, AvsEnvironment(ConvertFpsLimitAvs::PluginName, env));
 	return new ConvertFpsLimitAvs(args[0].AsClip(), num, den, args[2].AsInt(100), env);
 }
 
@@ -45,7 +45,7 @@ AVSValue __cdecl ConvertFpsLimitAvs::CreateFloat(AVSValue args, void*, IScriptEn
 AVSValue __cdecl ConvertFpsLimitAvs::CreatePreset(AVSValue args, void*, IScriptEnvironment* env)
 {
 	uint32_t num, den;
-	ConvertFpsLimitAvs::PresetToFPS("ConvertFpsLimit", args[1].AsString(), num, den, AvsEnvironment(env));
+	ConvertFpsLimitAvs::PresetToFPS(args[1].AsString(), num, den, AvsEnvironment(ConvertFpsLimitAvs::PluginName, env));
 	return new ConvertFpsLimitAvs(args[0].AsClip(), num, den, args[2].AsInt(100), env);
 }
 

@@ -7,7 +7,7 @@ AVSValue __cdecl ContinuousMaskAvs::Create(AVSValue args, void* user_data, IScri
 
 ContinuousMaskAvs::ContinuousMaskAvs(PClip _child, int _radius, IScriptEnvironment* env) :
 	GenericVideoFilter(_child), 
-	ContinuousMaskBase(new AvsVideo(_child), AvsEnvironment(env), _radius)
+	ContinuousMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _radius)
 {
 }
 

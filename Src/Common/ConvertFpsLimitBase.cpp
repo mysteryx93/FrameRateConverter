@@ -1,17 +1,23 @@
 #include "ConvertFpsLimitBase.h"
 
+const char* ConvertFPSLimitBase::PluginName = "ConvertFpsLimit";
+
 ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, ICommonEnvironment& env, int new_numerator, int new_denominator, int _ratio)
-	: source(_child), ratio(_ratio)
+	: source(_child), ratio(_ratio), fa(0), fb(0)
 {
 	if (_ratio < 0 || _ratio > 100)
-		env.ThrowError("ConvertFpsLimit: ratio must be between 0 (frame copy) and 100 (full blend)");
+	{
+		env.ThrowError("ratio must be between 0 (frame copy) and 100 (full blend)");
+		return;
+	}
 
 	fa = int64_t(source->FpsNum()) * new_denominator;
 	fb = int64_t(source->FpsDen()) * new_numerator;
 	if (3 * fb < (fa << 1))
 	{
 		int dec = MulDiv(source->FpsNum(), 20000, source->FpsDen());
-		env.ThrowErrorFormat("ConvertFpsLimit: New frame rate too small. Must be greater than %d.%04d ", dec / 30000, (dec / 3) % 10000);
+		env.ThrowError("New frame rate too small. Must be greater than %d.%04d ", dec / 30000, (dec / 3) % 10000);
+		return;
 	}
 }
 
@@ -277,10 +283,10 @@ void ConvertFPSLimitBase::reduce_frac(uint32_t& num, uint32_t& den, uint32_t lim
  *******   Float to FPS utility   ******
  ***************************************/
 
-void ConvertFPSLimitBase::FloatToFPS(const char* name, float n, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
+void ConvertFPSLimitBase::FloatToFPS(float n, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
 {
 	if (n <= 0)
-		env.ThrowErrorFormat("%s: FPS must be greater then 0.\n", name);
+		env.ThrowError("FPS must be greater then 0.");
 
 	float x;
 	uint32_t u = (uint32_t)(n * 1001 + 0.5);
@@ -308,7 +314,7 @@ void ConvertFPSLimitBase::FloatToFPS(const char* name, float n, uint32_t& num, u
 	// Find the rational pair with the smallest denominator
 	// that is equal to n within the accuracy of an IEEE float.
 	if (reduce_float(n, num, den))
-		env.ThrowErrorFormat("%s: FPS value is out of range.\n", name);
+		env.ThrowError("FPS value is out of range.");
 
 }
 
@@ -317,7 +323,7 @@ void ConvertFPSLimitBase::FloatToFPS(const char* name, float n, uint32_t& num, u
  *******   Preset to FPS utility   ****** -- Tritcal, IanB Jan 2006
  ****************************************/
 
-void ConvertFPSLimitBase::PresetToFPS(const char* name, const char* p, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
+void ConvertFPSLimitBase::PresetToFPS(const char* p, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
 {
 	if (lstrcmpi(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
 	else if (lstrcmpi(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
@@ -369,6 +375,6 @@ void ConvertFPSLimitBase::PresetToFPS(const char* name, const char* p, uint32_t&
 		else if (lstrcmpi(p, "120.0"            ) == 0) { num =   120; den =    1; }
 	*/
 	else {
-		env.ThrowErrorFormat("%s: invalid preset value used.\n", name);
+		env.ThrowError("Invalid preset value used.");
 	}
 }

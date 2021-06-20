@@ -41,7 +41,7 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 }
 
 StripeMaskAvs::StripeMaskAvs(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, IScriptEnvironment* env) :
-	GenericVideoFilter(_child), StripeMaskBase(new AvsVideo(_child), AvsEnvironment(env), _blksize, _blksizev, _overlap, _overlapv, _thr, _comp, _compv, _str, _strf, _lines)
+	GenericVideoFilter(_child), StripeMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _blksize, _blksizev, _overlap, _overlapv, _thr, _comp, _compv, _str, _strf, _lines)
 {
 	int b = vi.BitsPerComponent();
 	vi.pixel_type = b == 8 ? VideoInfo::CS_Y8 : b == 10 ? VideoInfo::CS_Y10 : b == 12 ? VideoInfo::CS_Y12 : b == 14 ? VideoInfo::CS_Y14 : b == 16 ? VideoInfo::CS_Y16 : b == 32 ? VideoInfo::CS_Y32 : VideoInfo::CS_Y8;
@@ -56,7 +56,7 @@ PVideoFrame __stdcall StripeMaskAvs::GetFrame(int n, IScriptEnvironment* env)
 	{
 		src2 = child->GetFrame(n + 1, env);
 	}
-	ProcessFrame(AvsFrame(src, vi), AvsFrame(src2, vi), AvsFrame(dst, vi), AvsEnvironment(env));
+	ProcessFrame(AvsFrame(src, vi), AvsFrame(src2, vi), AvsFrame(dst, vi), AvsEnvironment(PluginName, env));
 	return dst;
 }
 

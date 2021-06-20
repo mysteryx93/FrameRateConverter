@@ -6,6 +6,9 @@
 
 class ContinuousMaskBase
 {
+public:
+	static const char* PluginName;
+
 private:
 	ICommonEnvironment& env;
 	const int width;

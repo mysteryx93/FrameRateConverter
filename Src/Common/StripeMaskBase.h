@@ -16,6 +16,9 @@ enum MaskMode {
 };
 
 class StripeMaskBase {
+public:
+	static const char* PluginName;
+
 protected:
 	StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines);
 	~StripeMaskBase();

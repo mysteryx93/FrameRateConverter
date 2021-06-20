@@ -1,28 +1,30 @@
 #include "StripeMaskBase.h"
 
+const char* StripeMaskBase::PluginName = "StripeMask";
+
 StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines) :
 	source(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), strf(_strf), lines(_lines)
 {
 	if (!_child->IsYUV() && !_child->IsY())
-		env.ThrowError("StripeMask: clip must be Y or YUV format");
+		env.ThrowError("clip must be Y or YUV format");
 	if (blksize < 0)
-		env.ThrowError("StripeMask: blksize must be 0 or above");
+		env.ThrowError("blksize must be 0 or above");
 	if (blksizev < 0)
-		env.ThrowError("StripeMask: blksizev must be 0 or above");
+		env.ThrowError("blksizev must be 0 or above");
 	if (blksize != 0 && (overlap < 0 || overlap >= blksize))
-		env.ThrowError("StripeMask: overlap must be smaller than blksize");
+		env.ThrowError("overlap must be smaller than blksize");
 	if (blksizev != 0 && (overlapv < 0 || overlapv >= blksizev))
-		env.ThrowError("StripeMask: overlapv must be smaller than blksizev");
+		env.ThrowError("overlapv must be smaller than blksizev");
 	if (thr < 0 || thr > 255)
-		env.ThrowError("StripeMask: Trh must be between 0 and 255");
+		env.ThrowError("Trh must be between 0 and 255");
 	if (comp < 2 || comp > 5)
-		env.ThrowError("StripeMask: Comp must be between 2 and 5");
+		env.ThrowError("Comp must be between 2 and 5");
 	if (compv < 2 || compv > 5)
-		env.ThrowError("StripeMask: CompV must be between 2 and 5");
+		env.ThrowError("CompV must be between 2 and 5");
 	if (str < 0 || str > 255)
-		env.ThrowError("StripeMask: Str must be between 0 and 255");
+		env.ThrowError("Str must be between 0 and 255");
 	if (strf < 0 || strf > 255)
-		env.ThrowError("StripeMask: StrF must be between 0 and 255");
+		env.ThrowError("StrF must be between 0 and 255");
 
 	// int b = _child.BitsPerSample();
 	// vi.pixel_type = b == 8 ? VideoInfo::CS_Y8 : b == 10 ? VideoInfo::CS_Y10 : b == 12 ? VideoInfo::CS_Y12 : b == 14 ? VideoInfo::CS_Y14 : b == 16 ? VideoInfo::CS_Y16 : b == 32 ? VideoInfo::CS_Y32 : VideoInfo::CS_Y8;

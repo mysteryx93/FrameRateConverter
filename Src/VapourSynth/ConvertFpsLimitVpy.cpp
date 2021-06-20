@@ -2,8 +2,8 @@
 
 ConvertFpsLimitVpy::ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, 
 	int new_numerator, int new_denominator, int _ratio) :
-	VpyFilter(in, out, node, core, api),
-	ConvertFPSLimitBase(new VpyVideo(node, api), VpyEnvironment(api, core), new_numerator, new_denominator, _ratio)
+	VpyFilter(PluginName, in, out, node, core, api),
+	ConvertFPSLimitBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), new_numerator, new_denominator, _ratio)
 {
 	viDst.fpsNum = new_numerator;
 	viDst.fpsDen = new_denominator;
@@ -13,11 +13,11 @@ ConvertFpsLimitVpy::ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNodeRef* n
 	viDst.numFrames = int(num_frames);
 }
 
-void ConvertFpsLimitVpy::Init(VSMap* in, VSMap* out, VSNode* node)
+void ConvertFpsLimitVpy::Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env)
 {
 }
 
-VSFrameRef* ConvertFpsLimitVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx)
+VSFrameRef* ConvertFpsLimitVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env)
 {
 	if (activationReason == arInitial)
 	{
@@ -66,7 +66,7 @@ void VS_CC ConvertFpsLimitVpy::CreateFloat(const VSMap* in, VSMap* out, void* us
 	int ratio = prop.GetInt("ratio", 100);
 
 	uint32_t num, den;
-	FloatToFPS("ConvertFpsLimit", fps, num, den, VpyEnvironment(api, core));
+	FloatToFPS(fps, num, den, VpyEnvironment("ConvertFpsLimit", api, core, out));
 	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
 	f->CreateFilter(in, out);
 }
@@ -80,7 +80,7 @@ void VS_CC ConvertFpsLimitVpy::CreatePreset(const VSMap* in, VSMap* out, void* u
 	int ratio = prop.GetInt("ratio", 100);
 
 	uint32_t num, den;
-	PresetToFPS("ConvertFpsLimit", fps, num, den, VpyEnvironment(api, core));
+	PresetToFPS(fps, num, den, VpyEnvironment("ConvertFpsLimit", api, core, out));
 	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
 	f->CreateFilter(in, out);
 }

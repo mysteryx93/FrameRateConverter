@@ -11,16 +11,16 @@ void VS_CC ContinuousMaskVpy::Create(const VSMap* in, VSMap* out, void* userData
 }
 
 ContinuousMaskVpy::ContinuousMaskVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, int _radius) :
-    VpyFilter(in, out, node, core, api),
-	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(api, core), _radius)
+    VpyFilter(PluginName, in, out, node, core, api),
+	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), _radius)
 {
 }
 
-void ContinuousMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node)
+void ContinuousMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env)
 {
 }
 
-VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx)
+VSFrameRef* ContinuousMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env)
 {
     if (activationReason == arInitial)
     {

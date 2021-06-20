@@ -3,21 +3,41 @@
 #include "Common.h"
 #include "../VapourSynth/VSHelper.h"
 #include <string>
+#include <stdexcept>
 
-struct VpyEnvironment : public ICommonEnvironment {
+struct VpyEnvironment : public ICommonEnvironment
+{
 	const VSAPI* Api;
 	VSCore* Core;
-	// VSMap* Out;
+	VSMap* Out = nullptr;
+	VSFrameContext* FrameCtx = nullptr;
 
-	VpyEnvironment(const VSAPI* _api, VSCore* _core) :
-		Api(_api), Core(_core)
+	VpyEnvironment(const char* pluginName, const VSAPI* _api, VSCore* _core, VSMap* out) :
+		ICommonEnvironment(pluginName),
+		Api(_api), Core(_core), Out(out)
 	{
 	}
 
-	void ThrowError(const char* message)
+	VpyEnvironment(const char* pluginName, const VSAPI* _api, VSCore* _core, VSFrameContext* frameCtx) :
+		ICommonEnvironment(pluginName),
+		Api(_api), Core(_core), FrameCtx(frameCtx)
 	{
-		throw std::string(message);
-		// Api->setError(Out, message);
+	}
+
+	void ThrowErrorInternal(const char* message)
+	{
+		if (Out)
+		{
+			Api->setError(Out, message);
+		}
+		else if (FrameCtx)
+		{
+			Api->setFilterError(message, FrameCtx);
+		}
+		else
+		{
+			throw std::runtime_error{ message };
+		}
 	}
 
 	void MakeWritable(ICommonFrame& frame)
@@ -27,19 +47,19 @@ struct VpyEnvironment : public ICommonEnvironment {
 		frame.Ref = Copy;
 	}
 
-	VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* Args)
-	{
-		auto Plugin = Api->getPluginByNs(ns, Core);
-		auto ret = Api->invoke(Plugin, func, Args);
-		if (Api->getError(ret)) {
-			// Api->setError(out, api->getError(ret));
-			Api->freeMap(ret);
-			return nullptr;
-		}
-		auto Result = Api->propGetNode(ret, "clip", 0, NULL);
+VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* Args)
+{
+	auto Plugin = Api->getPluginByNs(ns, Core);
+	auto ret = Api->invoke(Plugin, func, Args);
+	if (Api->getError(ret)) {
+		// Api->setError(out, api->getError(ret));
 		Api->freeMap(ret);
-		return Result;
+		return nullptr;
 	}
+	auto Result = Api->propGetNode(ret, "clip", 0, NULL);
+	Api->freeMap(ret);
+	return Result;
+}
 };
 
 struct VpyVideo : ICommonVideo

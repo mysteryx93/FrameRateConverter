@@ -17,10 +17,10 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 
 	auto Input = InClip;
 	auto Vi = api->getVideoInfo(InClip);
-	bool BitDepth = Vi->format->bitsPerSample > 8;
+	int BitDepth = Vi->format->bitsPerSample;
 
 	// FMTC transfer only supports RGBS format.
-	VpyEnvironment Env = VpyEnvironment(api, core);
+	VpyEnvironment Env = VpyEnvironment(StripeMaskBase::PluginName, api, core, out);
 	VSMap* Args = api->createMap();
 	api->propSetNode(Args, "clip", Input, paReplace);
 	api->propSetInt(Args, "format", pfGray16, paReplace);
@@ -46,14 +46,21 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 				auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
 				f->CreateFilter(in, out);
 
-				// Convert back to original bit depth.
-				//if (BitDepth > 8)
-				//{
-				//	api->clearMap(Args);
-				//	api->propSetNode(Args, "clip", Input, paReplace);
-				//	api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
-				//	Input = Env.InvokeClip("resize", "Point", Args);
-				//}
+				if (!f->HasError())
+				{
+					VpyPropReader FilterProp = VpyPropReader(api, out);
+					Input = FilterProp.GetNode("clip");
+					if (Input && BitDepth > 8)
+					{
+						// Convert back to original bit depth.
+						api->clearMap(Args);
+						api->propSetNode(Args, "clip", Input, paReplace);
+						api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
+						Input = Env.InvokeClip("resize", "Point", Args);
+
+						api->propSetNode(out, "clip", Input, paReplace);
+					}
+				}
 			}
 		}
 	}
@@ -67,18 +74,18 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 
 StripeMaskVpy::StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,
 	int blkSize, int blkSizeV, int overlap, int overlapV, int thr, int comp, int compV, int str, int strf, bool lines) :
-	VpyFilter(in, out, node, core, api),
-	StripeMaskBase(new VpyVideo(node, api), VpyEnvironment(api, core), blkSize, blkSizeV, overlap, overlapV, thr, comp, compV, str, strf, lines)
+	VpyFilter(PluginName, in, out, node, core, api),
+	StripeMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), blkSize, blkSizeV, overlap, overlapV, thr, comp, compV, str, strf, lines)
 {
 	int b = viSrc->format->bitsPerSample;
 	viDst.format = api->getFormatPreset(b <= 8 ? pfGray8 : b <= 16 ? pfGray16 : b == 32 ? pfGrayS : pfGray8, core);
 }
 
-void StripeMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node)
+void StripeMaskVpy::Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env)
 {
 }
 
-VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx)
+VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env)
 {
 	if (activationReason == arInitial)
 	{
@@ -99,7 +106,7 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 		//auto dst = api->copyFrame(src, core);
 
 		VSFrameRef* dst = api->newVideoFrame(viDst.format, viDst.width, viDst.height, src, core);
-		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), VpyEnvironment(api, core));
+		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), env);
 
 		api->freeFrame(src);
 		return dst;

@@ -6,12 +6,13 @@
 struct AvsEnvironment : public ICommonEnvironment {
 	IScriptEnvironment* Env;
 
-	AvsEnvironment(IScriptEnvironment* _env) :
+	AvsEnvironment(const char* pluginName, IScriptEnvironment* _env) :
+		ICommonEnvironment(pluginName),
 		Env(_env)
 	{
 	}
 
-	void ThrowError(const char* message)
+	void ThrowErrorInternal(const char* message)
 	{
 		Env->ThrowError(message);
 	}

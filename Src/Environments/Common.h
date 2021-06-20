@@ -1,5 +1,6 @@
 #pragma once
 #include "instrset_detect.h"
+#include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -52,24 +53,57 @@ struct ICommonFrame
 
 struct ICommonEnvironment
 {
-	virtual ~ICommonEnvironment() {}
-	void ThrowErrorFormat(const char* format, ...)
+	const char* PluginName;
+
+	ICommonEnvironment(const char* pluginName)
 	{
-		char buffer[256];
+		PluginName = pluginName;
+	}
+
+	virtual ~ICommonEnvironment() {}
+
+	//void ThrowError(const char* message)
+	//{
+	//	// Start the error message with plugin name.
+	//	const int MaxSize = 512;
+	//	const size_t NameLength = strlen(PluginName);
+	//	char Buffer[MaxSize]{ 0 };
+	//	strcpy(Buffer, PluginName);
+	//	Buffer[NameLength] = ':';
+	//	Buffer[NameLength + 1] = ' ';
+
+	//	// Add the error message.
+	//	strncpy(Buffer + NameLength + 2, message, 512 - NameLength - 2);
+
+	//	ThrowErrorInternal(Buffer);
+	//}
+
+	bool ThrowError(const char* format, ...)
+	{
+		// Start the error message with plugin name.
+		const int MaxSize = 512;
+		const size_t NameLength = strlen(PluginName);
+		char Buffer[MaxSize]{ 0 };
+		strcpy(Buffer, PluginName);
+		Buffer[NameLength] = ':';
+		Buffer[NameLength + 1] = ' ';
+
+		// Add the error message.
 		va_list args;
 		va_start(args, format);
-		vsnprintf(buffer, 256, format, args);
-		ThrowError(buffer);
+		vsnprintf(Buffer + NameLength + 2, 512 - NameLength - 2, format, args);
 		va_end(args);
+
+		ThrowErrorInternal(Buffer);
+		return true;
 	}
-	virtual void ThrowError(const char* message) = 0;
+
 	//virtual void MakeWritable(ICommonFrame& frame) = 0;
 
 	const int GetCpuSupport()
 	{
 		return instrset_detect();
 	}
-
 	//const int ISET_NONE = 0;    // 80386 instruction set
 	//const int ISET_SSE = 1;     // SSE (XMM) supported by CPU (not testing for O.S. support)
 	//const int ISET_SSE2 = 2;    // SSE2
@@ -82,4 +116,7 @@ struct ICommonEnvironment
 	//const int ISET_AVXS12F = 9; // AVX512F
 	//const int ISET_AVX512VL = 10; // AVX512VL
 	//const int ISET_AVX512BW = 11; // AVX512BW, AVX512DQ
+
+protected:
+	virtual void ThrowErrorInternal(const char* message) = 0;
 };

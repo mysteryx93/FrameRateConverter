@@ -1,12 +1,14 @@
 #include "ContinuousMaskBase.h"
 
+const char* ContinuousMaskBase::PluginName = "ContinuousMask";
+
 ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _clip, ICommonEnvironment& _env, int _radius) :
 	width(_clip->Width()), height(_clip->Height()), radius(_radius), bitsPerSample(_clip->BitsPerSample()), env(_env)
 {
 	if (!_clip->IsYUV() && !_clip->IsY())
-		env.ThrowError("ContinuousMask: Clip must be in Y or YUV format");
+		env.ThrowError("Clip must be in Y or YUV format");
 	if (radius <= 1)
-		env.ThrowError("ContinuousMask: Radius must be above 1");
+		env.ThrowError("Radius must be above 1");
 }
 
 void ContinuousMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& dst)

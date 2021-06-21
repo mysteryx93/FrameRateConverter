@@ -68,10 +68,6 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	}
 
 	api->freeMap(Args);
-	//if (!Input)
-	//{
-	//	api->freeNode(InClip);
-	//}
 }
 
 StripeMaskVpy::StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,

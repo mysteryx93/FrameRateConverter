@@ -22,7 +22,11 @@ void VS_CC ConvertFpsLimitVpy::Create(const VSMap* in, VSMap* out, void* userDat
 		ParamCount++;
 
 	VpyEnvironment Env = VpyEnvironment(PluginName, api, core, out);
-	if ((num > 0) != (den > 0))
+	if (ParamCount == 0)
+	{
+		Env.ThrowError("Must set one of the following parameters: num/den (fraction), fps (float), preset (string) or match (clip).");
+	}
+	else if ((num > 0) != (den > 0))
 	{
 		Env.ThrowError("Both num and den must be specified.");
 	}

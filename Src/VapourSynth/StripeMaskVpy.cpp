@@ -111,6 +111,10 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), env);
 
 		api->freeFrame(src);
+		if (src2)
+		{
+			api->freeFrame(src2);
+		}
 		return dst;
 	}
 

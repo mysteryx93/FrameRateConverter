@@ -31,19 +31,19 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 		"den:int;"
 		"ratio:int:opt;",
 		ConvertFpsLimitVpy::Create, 0, plugin);
-	registerFunc("ConvertFpsLimit",
-		"clip:clip;"
-		"fps:float;"
-		"ratio:int:opt;",
-		ConvertFpsLimitVpy::CreateFloat, 0, plugin);
-	registerFunc("ConvertFpsLimit",
-		"clip:clip;"
-		"fps:data;"
-		"ratio:int:opt;",
-		ConvertFpsLimitVpy::CreatePreset, 0, plugin);
-	registerFunc("ConvertFpsLimit",
-		"clip:clip;"
-		"fps:clip;"
-		"ratio:int:opt;",
-		ConvertFpsLimitVpy::CreateFromClip, 0, plugin);
+	//registerFunc("ConvertFpsLimit",
+	//	"clip:clip;"
+	//	"fps:float;"
+	//	"ratio:int:opt;",
+	//	ConvertFpsLimitVpy::CreateFloat, 0, plugin);
+	//registerFunc("ConvertFpsLimit",
+	//	"clip:clip;"
+	//	"fps:data;"
+	//	"ratio:int:opt;",
+	//	ConvertFpsLimitVpy::CreatePreset, 0, plugin);
+	//registerFunc("ConvertFpsLimit",
+	//	"clip:clip;"
+	//	"fps:clip;"
+	//	"ratio:int:opt;",
+	//	ConvertFpsLimitVpy::CreateFromClip, 0, plugin);
 }

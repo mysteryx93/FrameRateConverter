@@ -49,14 +49,17 @@ struct VpyEnvironment : public ICommonEnvironment
 
 VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* Args)
 {
+	VSNodeRef* Result = nullptr;
 	auto Plugin = Api->getPluginByNs(ns, Core);
 	auto ret = Api->invoke(Plugin, func, Args);
-	if (Api->getError(ret)) {
-		// Api->setError(out, api->getError(ret));
-		Api->freeMap(ret);
-		return nullptr;
+	if (Api->getError(ret))
+	{
+		ThrowError(Api->getError(ret));
 	}
-	auto Result = Api->propGetNode(ret, "clip", 0, NULL);
+	else
+	{
+		Result = Api->propGetNode(ret, "clip", 0, NULL);
+	}
 	Api->freeMap(ret);
 	return Result;
 }

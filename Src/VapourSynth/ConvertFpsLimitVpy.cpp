@@ -1,5 +1,63 @@
 #include "ConvertFpsLimitVpy.h"
 
+void VS_CC ConvertFpsLimitVpy::Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
+{
+	VpyPropReader prop = VpyPropReader(api, in);
+	VSNodeRef* src = prop.GetNode("clip");
+	uint32_t num = prop.GetInt("num");
+	uint32_t den = prop.GetInt("den");
+	float fps = prop.GetFloat("fps");
+	const char* preset = prop.GetData("preset");
+	VSNodeRef* match = prop.GetNode("match");
+	int ratio = prop.GetInt("ratio", 100);
+
+	int ParamCount = 0;
+	if (num)
+		ParamCount++;
+	if (fps)
+		ParamCount++;
+	if (preset)
+		ParamCount++;
+	if (match)
+		ParamCount++;
+
+	VpyEnvironment Env = VpyEnvironment(PluginName, api, core, out);
+	if ((num > 0) != (den > 0))
+	{
+		Env.ThrowError("Both num and den must be specified.");
+	}
+	else if (ParamCount > 1)
+	{
+		Env.ThrowError("Can only set one of the following parameters: num/den (fraction), fps (float), preset (string) or match (clip).");
+	}
+	else
+	{
+		if (fps)
+		{
+			FloatToFPS(fps, num, den, Env);
+		}
+		else if (preset)
+		{
+			PresetToFPS(preset, num, den, Env);
+		}
+		else if (match)
+		{
+			auto vi = api->getVideoInfo(match);
+			num = vi->fpsNum;
+			den = vi->fpsDen;
+			api->freeNode(match);
+		}
+
+		// VapourSynth only accepts reduced fractions.
+		unsigned int div = gcd(num, den);
+		num /= div;
+		den /= div;
+
+		auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
+		f->CreateFilter(in, out);
+	}
+}
+
 ConvertFpsLimitVpy::ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, 
 	int new_numerator, int new_denominator, int _ratio) :
 	VpyFilter(PluginName, in, out, node, core, api),
@@ -46,53 +104,32 @@ void ConvertFpsLimitVpy::Free()
 {
 }
 
-
-void VS_CC ConvertFpsLimitVpy::Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
+unsigned int gcd(unsigned int u, unsigned int v)
 {
-	VpyPropReader prop = VpyPropReader(api, in);
-	VSNodeRef* src = prop.GetNode("clip");
-	int num = prop.GetInt("num");
-	int den = prop.GetInt("den");
-	int ratio = prop.GetInt("ratio", 100);
-	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
-	f->CreateFilter(in, out);
-}
+	// Base cases
+	// gcd(n, n) = n
+	if (u == v)
+		return u;
 
-void VS_CC ConvertFpsLimitVpy::CreateFloat(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
-{
-	VpyPropReader prop = VpyPropReader(api, in);
-	VSNodeRef* src = prop.GetNode("clip");
-	float fps = prop.GetInt("fps");
-	int ratio = prop.GetInt("ratio", 100);
+	//  Identity 1: gcd(0, n) = gcd(n, 0) = n
+	if (u == 0)
+		return v;
+	if (v == 0)
+		return u;
 
-	uint32_t num, den;
-	FloatToFPS(fps, num, den, VpyEnvironment("ConvertFpsLimit", api, core, out));
-	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
-	f->CreateFilter(in, out);
-}
-
-// Tritical Jan 2006
-void VS_CC ConvertFpsLimitVpy::CreatePreset(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
-{
-	VpyPropReader prop = VpyPropReader(api, in);
-	VSNodeRef* src = prop.GetNode("clip");
-	const char* fps = prop.GetData("fps");
-	int ratio = prop.GetInt("ratio", 100);
-
-	uint32_t num, den;
-	PresetToFPS(fps, num, den, VpyEnvironment("ConvertFpsLimit", api, core, out));
-	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, num, den, ratio);
-	f->CreateFilter(in, out);
-}
-
-void VS_CC ConvertFpsLimitVpy::CreateFromClip(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
-{
-	VpyPropReader prop = VpyPropReader(api, in);
-	VSNodeRef* src = prop.GetNode("clip");
-	auto fps = prop.GetNode("fps");
-	int ratio = prop.GetInt("ratio", 100);
-
-	auto vi = api->getVideoInfo(fps);
-	auto f = new ConvertFpsLimitVpy(in, out, src, core, api, vi->fpsNum, vi->fpsDen, ratio);
-	f->CreateFilter(in, out);
+	if (u & 1) { // u is odd
+		if (v % 2 == 0) // v is even
+			return gcd(u, v / 2); // Identity 3
+		// Identities 4 and 3 (u and v are odd, so u-v and v-u are known to be even)
+		if (u > v)
+			return gcd((u - v) / 2, v);
+		else
+			return gcd((v - u) / 2, u);
+	}
+	else { // u is even
+		if (v & 1) // v is odd
+			return gcd(u / 2, v); // Identity 3
+		else // both u and v are even
+			return 2 * gcd(u / 2, v / 2); // Identity 2
+	}
 }

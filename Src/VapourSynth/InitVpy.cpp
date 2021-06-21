@@ -27,8 +27,11 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 		StripeMaskVpy::Create, 0, plugin);
 	registerFunc("ConvertFpsLimit",
 		"clip:clip;"
-		"num:int;"
-		"den:int;"
+		"num:int:opt;"
+		"den:int:opt;"
+		"fps:float:opt;"
+		"preset:data:opt;"
+		"match:clip:opt;"
 		"ratio:int:opt;",
 		ConvertFpsLimitVpy::Create, 0, plugin);
 	//registerFunc("ConvertFpsLimit",

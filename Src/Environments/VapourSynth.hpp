@@ -47,11 +47,12 @@ struct VpyEnvironment : public ICommonEnvironment
 		frame.Ref = Copy;
 	}
 
-VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* Args)
+VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* args, VSNodeRef* input)
 {
 	VSNodeRef* Result = nullptr;
 	auto Plugin = Api->getPluginByNs(ns, Core);
-	auto ret = Api->invoke(Plugin, func, Args);
+	auto ret = Api->invoke(Plugin, func, args);
+	Api->freeNode(input);
 	if (Api->getError(ret))
 	{
 		ThrowError(Api->getError(ret));

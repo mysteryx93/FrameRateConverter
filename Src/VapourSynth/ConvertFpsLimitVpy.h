@@ -20,3 +20,5 @@ public:
 	VSFrameRef* VpyFilter::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env);
 	void VpyFilter::Free();
 };
+
+unsigned int gcd(unsigned int u, unsigned int v);

@@ -3,7 +3,7 @@
 void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api)
 {
 	VpyPropReader prop = VpyPropReader(api, in);
-	auto InClip = prop.GetNode("clip");
+	auto Input = prop.GetNode("clip");
 	int BlkSize = prop.GetInt("blkSize", 16);
 	int BlkSizeV = prop.GetInt("blkSizeV", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
@@ -17,16 +17,15 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	bool FullRange = prop.GetInt("fullRange", FullRangeDef);
 	bool Lines = prop.GetInt("lines", false);
 
-	auto Input = InClip;
-	auto Vi = api->getVideoInfo(InClip);
+	auto Vi = api->getVideoInfo(Input);
 	int BitDepth = Vi->format->bitsPerSample;
 
-	// FMTC transfer only supports RGBS format.
+	// FMTC transfer only supports Gray16 or RGBS format.
 	VpyEnvironment Env = VpyEnvironment(StripeMaskBase::PluginName, api, core, out);
 	VSMap* Args = api->createMap();
 	api->propSetNode(Args, "clip", Input, paReplace);
 	api->propSetInt(Args, "format", pfGray16, paReplace);
-	Input = Env.InvokeClip("resize", "Point", Args);
+	Input = Env.InvokeClip("resize", "Point", Args, Input);
 	if (Input)
 	{
 		// Convert to linear light.
@@ -35,14 +34,14 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 		api->propSetData(Args, "transs", "709", -1, paReplace);
 		api->propSetData(Args, "transd", "linear", -1, paReplace);
 		api->propSetInt(Args, "fulls", FullRange ? 1 : 0, paReplace);
-		Input = Env.InvokeClip("fmtc", "transfer", Args);
+		Input = Env.InvokeClip("fmtc", "transfer", Args, Input);
 		if (Input)
 		{
 			// Convert to GRAY8 for processing.
 			api->clearMap(Args);
 			api->propSetNode(Args, "clip", Input, paReplace);
 			api->propSetInt(Args, "format", pfGray8, paReplace);
-			Input = Env.InvokeClip("resize", "Point", Args);
+			Input = Env.InvokeClip("resize", "Point", Args, Input);
 			if (Input)
 			{
 				auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
@@ -51,16 +50,17 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 				if (!f->HasError())
 				{
 					VpyPropReader FilterProp = VpyPropReader(api, out);
-					Input = FilterProp.GetNode("clip");
-					if (Input && BitDepth > 8)
+					if (BitDepth > 8)
 					{
+						Input = FilterProp.GetNode("clip");
 						// Convert back to original bit depth.
 						api->clearMap(Args);
 						api->propSetNode(Args, "clip", Input, paReplace);
 						api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
-						Input = Env.InvokeClip("resize", "Point", Args);
+						Input = Env.InvokeClip("resize", "Point", Args, Input);
 
 						api->propSetNode(out, "clip", Input, paReplace);
+						api->freeNode(Input);
 					}
 				}
 			}
@@ -68,10 +68,10 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	}
 
 	api->freeMap(Args);
-	if (!Input)
-	{
-		api->freeNode(InClip);
-	}
+	//if (!Input)
+	//{
+	//	api->freeNode(InClip);
+	//}
 }
 
 StripeMaskVpy::StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,

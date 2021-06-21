@@ -8,11 +8,13 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int BlkSizeV = prop.GetInt("blkSizeV", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
 	int OverlapV = prop.GetInt("overlapV", BlkSizeV / 4);
-	int Thr = prop.GetInt("thr", 26);
+	int Thr = prop.GetInt("thr", 28);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
 	int CompV = prop.GetInt("compV", Comp);
 	int Str = prop.GetInt("str", 255);
 	int Strf = prop.GetInt("strf", 0);
+	bool FullRangeDef = prop.GetInt("_ColorRange", 0) == 1;
+	bool FullRange = prop.GetInt("fullRange", FullRangeDef);
 	bool Lines = prop.GetInt("lines", false);
 
 	auto Input = InClip;
@@ -32,7 +34,7 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 		api->propSetNode(Args, "clip", Input, paReplace);
 		api->propSetData(Args, "transs", "709", -1, paReplace);
 		api->propSetData(Args, "transd", "linear", -1, paReplace);
-		// api->propSetInt(Args, "fulls", 0, paReplace);
+		api->propSetInt(Args, "fulls", FullRange ? 1 : 0, paReplace);
 		Input = Env.InvokeClip("fmtc", "transfer", Args);
 		if (Input)
 		{

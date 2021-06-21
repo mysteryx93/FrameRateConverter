@@ -1,3 +1,10 @@
+Version 2.0 (2021-06-20)
+- Ported to VapourSynth
+- Fixed a bug in StripeMask
+- StripeMask linear gamma correction is now more accurate
+- StripeMask now accounts for PC vs TV range
+- StripeMask: added fullRange parameter, set to True if input is in full range
+
 Version 1.3 (2019-06-01)
 - Greatly enhanced quality in artifact areas! Ghost effect eliminated.
 - Added ConvertFpsLimit to blend with reduced blending ratios. Ratio=0 is frame copy and Ratio=100 is full blending. Ratio=50 reduces blending by half.

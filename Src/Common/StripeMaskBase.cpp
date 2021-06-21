@@ -123,7 +123,7 @@ void StripeMaskBase::CalcBandAvg(const BYTE* src, int pitch, int size, BYTE* lin
 			Sum = 0;
 			for (int j = 0; j < blk; j++)
 			{
-				Sum += src[pitch*j];
+				Sum += src[pitch * j];
 			}
 			lineAvg[i] = Sum / blk;
 			src++;
@@ -182,48 +182,45 @@ void StripeMaskBase::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, 
 				history[hLength++] = PatternStep(i, i - AltPos);
 				AltPos = i;
 
-				if (!Alt)
+				// Look through history to find patterns.
+				if (!Alt && PatternLength == 0)
 				{
-					// Look through history to find patterns.
-					if (PatternLength == 0)
+					// 2 last alt match 2 previous ones, or 4 last alt match 4 previous ones.
+					if (hLength >= 8)
 					{
-						// 2 last alt match 2 previous ones, or 4 last alt match 4 previous ones.
-						if (hLength >= 8)
+						PatternLength = CompareHistory(history, hLength, 4, blk) ? 4 : 0;
+					}
+					if (PatternLength == 0 && hLength >= 4)
+					{
+						PatternLength = CompareHistory(history, hLength, 2, blk) ? 2 : 0;
+					}
+					if (PatternLength > 0)
+					{
+						PatternStart = history[max(0, hLength - PatternLength * 2 - 2)].Pos;
+					}
+				}
+				else if (PatternLength > 0)
+				{
+					// Once pattern is detected, detect when pattern breaks.
+					if (CompareHistory(history, hLength, PatternLength, blk))
+					{
+						PatternCont += 2;
+					}
+					else
+					{
+						PatternEnd = history[hLength - 3].Pos;
+						PatternLength = 0;
+						PatternCont = 0;
+						if (hLength > 6) // if hLength=6, 0-1 is blank, 2-3 is 'pattern start' and 4-5 is pattern break.
 						{
-							PatternLength = CompareHistory(history, hLength, 4, blk) ? 4 : 0;
-						}
-						if (PatternLength == 0 && hLength >= 4)
-						{
-							PatternLength = CompareHistory(history, hLength, 2, blk) ? 2 : 0;
-						}
-						if (PatternLength > 0)
-						{
-							PatternStart = history[max(0, hLength - PatternLength * 2 - 2)].Pos;
+							MarkArea(dst, dstPitch, PatternStart, PatternEnd, strength, blk, vertical);
 						}
 					}
-					else if (PatternLength > 0)
-					{
-						// Once pattern is detected, detect when pattern breaks.
-						if (CompareHistory(history, hLength, PatternLength, blk))
-						{
-							PatternCont += 2;
-						}
-						else
-						{
-							PatternEnd = history[hLength - 3].Pos;
-							PatternLength = 0;
-							PatternCont = 0;
-							if (hLength > 6) // if hLength=6, 0-1 is blank, 2-3 is 'pattern start' and 4-5 is pattern break.
-							{
-								MarkArea(dst, dstPitch, PatternStart, PatternEnd, strength, blk, vertical);
-							}
-						}
-					}
-					// If 2 full blocks are continuous white, mark it.
-					if (history[hLength - 1].Val > blk * 2)
-					{
-						MarkArea(dst, dstPitch, history[hLength - 2].Pos, i, strength, blk, vertical);
-					}
+				}
+				// If 2 full blocks are continuous white, mark it.
+				if (!Alt && history[hLength - 1].Length > blk * 2)
+				{
+					MarkArea(dst, dstPitch, history[hLength - 2].Pos, i, strength, blk, vertical);
 				}
 			}
 		}
@@ -284,11 +281,11 @@ bool StripeMaskBase::CompareHistory(PatternStep* history, int hLength, int lengt
 	for (int i = 0; i < length; i++)
 	{
 		// Maximum pattern step is blksize*2
-		if (Item1->Val > blk * 2 || Item2->Val > blk * 2)
+		if (Item1->Length > blk * 2 || Item2->Length > blk * 2)
 		{
 			return false;
 		}
-		else if (abs(Item1->Val - Item2->Val) > (Item2->Val <= 4 ? 1 : Item2->Val <= 8 ? 2 : Item2->Val <= 16 ? 3 : 4))
+		else if (abs(Item1->Length - Item2->Length) > (Item2->Length <= 4 ? 1 : Item2->Length <= 8 ? 2 : Item2->Length <= 16 ? 3 : 4))
 		{
 			return false;
 		}

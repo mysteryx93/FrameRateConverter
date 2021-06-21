@@ -5,9 +5,9 @@
 
 struct PatternStep {
 	PatternStep() {};
-	PatternStep(int _pos, int _val) : Pos(_pos), Val(_val) {};
+	PatternStep(int _pos, int _val) : Pos(_pos), Length(_val) {};
 	int Pos = 0;
-	int Val = 0;
+	int Length = 0;
 };
 
 enum MaskMode {

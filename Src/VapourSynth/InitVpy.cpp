@@ -13,16 +13,16 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 		ContinuousMaskVpy::Create, 0, plugin);
 	registerFunc("StripeMask", 
 		"clip:clip;"
-		"blkSize:int:opt;"
-		"blkSizeV:int:opt;"
+		"blksize:int:opt;"
+		"blksizev:int:opt;"
 		"overlap:int:opt;"
-		"overlapV:int:opt;"
+		"overlapv:int:opt;"
 		"thr:int:opt;"
 		"comp:int:opt;"
-		"compV:int:opt;"
+		"compv:int:opt;"
 		"str:int:opt;"
 		"strf:int:opt;"
-		"fullRange:int:opt;"
+		"fullrange:int:opt;"
 		"lines:int:opt;",
 		StripeMaskVpy::Create, 0, plugin);
 	registerFunc("ConvertFpsLimit",

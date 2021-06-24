@@ -4,17 +4,17 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 {
 	VpyPropReader prop = VpyPropReader(api, in);
 	auto Input = prop.GetNode("clip");
-	int BlkSize = prop.GetInt("blkSize", 16);
-	int BlkSizeV = prop.GetInt("blkSizeV", BlkSize > 0 ? BlkSize : 16);
+	int BlkSize = prop.GetInt("blksize", 16);
+	int BlkSizeV = prop.GetInt("blksizev", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
-	int OverlapV = prop.GetInt("overlapV", BlkSizeV / 4);
+	int OverlapV = prop.GetInt("overlapv", BlkSizeV / 4);
 	int Thr = prop.GetInt("thr", 28);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
-	int CompV = prop.GetInt("compV", Comp);
+	int CompV = prop.GetInt("compv", Comp);
 	int Str = prop.GetInt("str", 255);
 	int Strf = prop.GetInt("strf", 0);
 	bool FullRangeDef = prop.GetInt("_ColorRange", 0) == 1;
-	bool FullRange = prop.GetInt("fullRange", FullRangeDef);
+	bool FullRange = prop.GetInt("fullrange", FullRangeDef);
 	bool Lines = prop.GetInt("lines", false);
 
 	auto Vi = api->getVideoInfo(Input);

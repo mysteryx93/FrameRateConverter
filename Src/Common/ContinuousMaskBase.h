@@ -12,10 +12,11 @@ public:
 private:
 	ICommonEnvironment& env;
 	const int radius;
+	const int thr;
 	const int bitsPerSample;
 
 protected:
-	ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius);
+	ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius, int _thr);
 	~ContinuousMaskBase() {}
 	void ProcessFrame(ICommonFrame& src, ICommonFrame& dst);
 	ICommonVideo* source;

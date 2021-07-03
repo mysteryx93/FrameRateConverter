@@ -5,14 +5,15 @@ void VS_CC ContinuousMaskVpy::Create(const VSMap* in, VSMap* out, void* userData
     VpyPropReader prop = VpyPropReader(api, in);
     VSNodeRef* src = prop.GetNode("clip");
     int radius = prop.GetInt("radius", 16);
+    int thr = prop.GetInt("thr", 0);
 
-	auto f = new ContinuousMaskVpy(in, out, src, core, api, radius);
+	auto f = new ContinuousMaskVpy(in, out, src, core, api, radius, thr);
     f->CreateFilter(in, out);
 }
 
-ContinuousMaskVpy::ContinuousMaskVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, int _radius) :
+ContinuousMaskVpy::ContinuousMaskVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* api, int _radius, int _thr) :
     VpyFilter(PluginName, in, out, node, core, api),
-	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), _radius)
+	ContinuousMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), _radius, _thr)
 {
 }
 

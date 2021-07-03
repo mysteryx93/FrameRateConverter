@@ -9,7 +9,8 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 	configFunc("com.vapoursynth.frc", "frc", "Frame Rate Connverter", VAPOURSYNTH_API_VERSION, 1, plugin);
 	registerFunc("ContinuousMask",
 		"clip:clip;"
-		"radius:int:opt;",
+		"radius:int:opt;"
+		"thr:int:opt;",
 		ContinuousMaskVpy::Create, 0, plugin);
 	registerFunc("StripeMask", 
 		"clip:clip;"

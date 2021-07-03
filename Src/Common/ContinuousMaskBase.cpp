@@ -2,11 +2,17 @@
 
 const char* ContinuousMaskBase::PluginName = "ContinuousMask";
 
-ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius) :
-	source(_child), radius(_radius), bitsPerSample(_child->BitsPerSample()), env(_env)
+ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius, int _thr) :
+	source(_child), radius(_radius), thr(_thr), bitsPerSample(_child->BitsPerSample()), env(_env)
 {
 	if (radius <= 1)
-		env.ThrowError("Radius must be above 1");
+	{
+		env.ThrowError("radius must be above 1");
+	}
+	else if (thr < 0 || thr > 255)
+	{
+		env.ThrowError("thr must be between 0 and 255.");
+	}
 }
 
 void ContinuousMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& dst)
@@ -53,7 +59,7 @@ template<typename T, typename P> void ContinuousMaskBase::Calculate(int width, i
 	{
 		for (int x = 0; x < width; x++)
 		{
-			if (srcIter[x] > 0)
+			if (srcIter[x] > thr)
 			{
 				Sum = 0;
 				radFwd = min(radius, width - x);

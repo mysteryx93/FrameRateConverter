@@ -2,12 +2,15 @@
 
 AVSValue __cdecl ContinuousMaskAvs::Create(AVSValue args, void* user_data, IScriptEnvironment* env)
 {
-	return new ContinuousMaskAvs(args[0].AsClip(), args[1].AsInt(16), env);
+	PClip clip = args[0].AsClip();
+	int radius = args[1].AsInt(16);
+	int thr = args[2].AsInt(0);
+	return new ContinuousMaskAvs(clip, radius, thr, env);
 }
 
-ContinuousMaskAvs::ContinuousMaskAvs(PClip _child, int _radius, IScriptEnvironment* env) :
+ContinuousMaskAvs::ContinuousMaskAvs(PClip _child, int _radius, int _thr, IScriptEnvironment* env) :
 	GenericVideoFilter(_child), 
-	ContinuousMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _radius)
+	ContinuousMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _radius, _thr)
 {
 }
 

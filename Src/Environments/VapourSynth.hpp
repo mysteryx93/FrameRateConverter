@@ -78,12 +78,12 @@ struct VpyVideo : ICommonVideo
 
 	int FpsNum()
 	{
-		return VInfo->fpsNum;
+		return (int)VInfo->fpsNum;
 	}
 
 	int FpsDen()
 	{
-		return VInfo->fpsDen;
+		return (int)VInfo->fpsDen;
 	}
 
 	int Height()

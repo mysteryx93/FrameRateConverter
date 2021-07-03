@@ -11,17 +11,16 @@ public:
 
 private:
 	ICommonEnvironment& env;
-	const int width;
-	const int height;
 	const int radius;
 	const int bitsPerSample;
 
 protected:
-	ContinuousMaskBase(ICommonVideo* _clip, ICommonEnvironment& _env, int _radius);
+	ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius);
 	~ContinuousMaskBase() {}
 	void ProcessFrame(ICommonFrame& src, ICommonFrame& dst);
+	ICommonVideo* source;
 
 	// T: data type to calculate total (must hold P.MaxValue * radius * 4)
 	// P: data type of each pixel
-	template<typename T, typename P> void Calculate(const BYTE* srcp, int srcPitch, BYTE* dstp, int dstPitch);
+	template<typename T, typename P> void Calculate(int width, int height, const BYTE* srcp, int srcPitch, BYTE* dstp, int dstPitch);
 };

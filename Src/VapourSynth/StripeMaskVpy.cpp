@@ -8,61 +8,86 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int BlkSizeV = prop.GetInt("blksizev", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
 	int OverlapV = prop.GetInt("overlapv", BlkSizeV / 4);
-	int Thr = prop.GetInt("thr", 28);
+	int Thr = prop.GetInt("thr", 15);
+	int Range = prop.GetInt("range", 125);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
 	int CompV = prop.GetInt("compv", Comp);
 	int Str = prop.GetInt("str", 255);
 	int Strf = prop.GetInt("strf", 0);
-	bool FullRangeDef = prop.GetInt("_ColorRange", 0) == 1;
-	bool FullRange = prop.GetInt("fullrange", FullRangeDef);
 	bool Lines = prop.GetInt("lines", false);
+	bool Skip = prop.GetInt("skip", false);
+
+	bool SrcFullRange = prop.GetInt("_ColorRange", 1) == 0;
 
 	auto Vi = api->getVideoInfo(Input);
 	int BitDepth = Vi->format->bitsPerSample;
 
-	// FMTC transfer only supports Gray16 or RGBS format.
-	VpyEnvironment Env = VpyEnvironment(StripeMaskBase::PluginName, api, core, out);
-	VSMap* Args = api->createMap();
-	api->propSetNode(Args, "clip", Input, paReplace);
-	api->propSetInt(Args, "format", pfGray16, paReplace);
-	Input = Env.InvokeClip("resize", "Point", Args, Input);
-	if (Input)
+	VpyEnvironment Env = VpyEnvironment(PluginName, api, core, out);
+	if (Vi->format->colorFamily != cmYUV && Vi->format->colorFamily != cmGray)
 	{
-		// Convert to linear light.
+		Env.ThrowError("clip must be Y or YUV format");
+		return;
+	}
+	else if (Range < 0 || Range > 256)
+	{
+		Env.ThrowError("range must be between 0 and 255.");
+		return;
+	}
+
+	// Keep only Luma plane.
+	VSMap* Args = api->createMap();
+	if (!Skip)
+	{
+		api->propSetNode(Args, "clips", Input, paReplace);
+		api->propSetInt(Args, "planes", 0, paReplace);
+		api->propSetInt(Args, "colorfamily", cmGray, paReplace);
+		Input = Env.InvokeClip("std", "ShufflePlanes", Args, Input);
+	}
+
+	// Reduce range and convert to linear light (gamma 2.2).
+	if (Input && !Skip)
+	{
+		int RangeMin = (255 - Range) / 2;
+		int RangeMax = Range + RangeMin;
 		api->clearMap(Args);
 		api->propSetNode(Args, "clip", Input, paReplace);
-		api->propSetData(Args, "transs", "709", -1, paReplace);
-		api->propSetData(Args, "transd", "linear", -1, paReplace);
-		api->propSetInt(Args, "fulls", FullRange ? 1 : 0, paReplace);
-		Input = Env.InvokeClip("fmtc", "transfer", Args, Input);
-		if (Input)
+		api->propSetFloat(Args, "gamma", 1 / 2.2, paReplace);
+		api->propSetFloat(Args, "min_in", SrcFullRange ? 0 : 16, paReplace);
+		api->propSetFloat(Args, "max_in", SrcFullRange ? 255 : 235, paReplace);
+		api->propSetFloat(Args, "min_out", RangeMin, paReplace);
+		api->propSetFloat(Args, "max_out", RangeMax, paReplace);
+		Input = Env.InvokeClip("std", "Levels", Args, Input);
+	}
+
+	// Convert to 8-bit.
+	if (Input && BitDepth > 8)
+	{
+		api->clearMap(Args);
+		api->propSetNode(Args, "clip", Input, paReplace);
+		api->propSetInt(Args, "format", pfGray8, paReplace);
+		Input = Env.InvokeClip("resize", "Point", Args, Input);
+	}
+	
+	// Create StripeMask.
+	if (Input)
+	{
+		auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
+		f->CreateFilter(in, out);
+
+		if (!f->HasError())
 		{
-			// Convert to GRAY8 for processing.
-			api->clearMap(Args);
-			api->propSetNode(Args, "clip", Input, paReplace);
-			api->propSetInt(Args, "format", pfGray8, paReplace);
-			Input = Env.InvokeClip("resize", "Point", Args, Input);
-			if (Input)
+			VpyPropReader FilterProp = VpyPropReader(api, out);
+			if (BitDepth > 8)
 			{
-				auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
-				f->CreateFilter(in, out);
+				Input = FilterProp.GetNode("clip");
+				// Convert back to original bit depth.
+				api->clearMap(Args);
+				api->propSetNode(Args, "clip", Input, paReplace);
+				api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
+				Input = Env.InvokeClip("resize", "Point", Args, Input);
 
-				if (!f->HasError())
-				{
-					VpyPropReader FilterProp = VpyPropReader(api, out);
-					if (BitDepth > 8)
-					{
-						Input = FilterProp.GetNode("clip");
-						// Convert back to original bit depth.
-						api->clearMap(Args);
-						api->propSetNode(Args, "clip", Input, paReplace);
-						api->propSetInt(Args, "format", BitDepth <= 16 ? pfGray16 : pfGrayS, paReplace);
-						Input = Env.InvokeClip("resize", "Point", Args, Input);
-
-						api->propSetNode(out, "clip", Input, paReplace);
-						api->freeNode(Input);
-					}
-				}
+				api->propSetNode(out, "clip", Input, paReplace);
+				api->freeNode(Input);
 			}
 		}
 	}

@@ -51,12 +51,14 @@ public:
 	static const VSFrameRef* VS_CC VpyFilter::GetFrame(int n, int activationReason, void** instanceData, void** frameData, VSFrameContext* frameCtx, VSCore* core, const VSAPI* api)
 	{
 		VpyFilter* filter = (VpyFilter*)*instanceData;
+		filter->core = core;
 		return filter->GetFrame(n, activationReason, frameData, frameCtx, VpyEnvironment(filter->PluginName2, api, core, frameCtx));
 	}
 
 	static void VS_CC VpyFilter::Free(void* instanceData, VSCore* core, const VSAPI* api)
 	{
 		VpyFilter* filter = (VpyFilter*)instanceData;
+		filter->core = core;
 		filter->Free();
 		api->freeNode(filter->Node);
 		delete filter;

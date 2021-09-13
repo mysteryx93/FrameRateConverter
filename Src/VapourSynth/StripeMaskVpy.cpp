@@ -10,12 +10,12 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int OverlapV = prop.GetInt("overlapv", BlkSizeV / 4);
 	int Thr = prop.GetInt("thr", 15);
 	int Range = prop.GetInt("range", 125);
+	double Gamma = prop.GetFloat("gamma", 1.0);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
 	int CompV = prop.GetInt("compv", Comp);
 	int Str = prop.GetInt("str", 255);
 	int Strf = prop.GetInt("strf", 0);
 	bool Lines = prop.GetInt("lines", false);
-	bool Skip = prop.GetInt("skip", false);
 
 	bool SrcFullRange = prop.GetInt("_ColorRange", 1) == 0;
 
@@ -28,35 +28,24 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 		Env.ThrowError("clip must be Y or YUV format");
 		return;
 	}
-	else if (Range < 0 || Range > 256)
+	else if (Range < 1 || Range > 255)
 	{
-		Env.ThrowError("range must be between 0 and 255.");
+		Env.ThrowError("range must be between 1 and 255.");
+		return;
+	}
+	else if (Gamma <= 0 || Gamma > 100)
+	{
+		Env.ThrowError("gamma must be greater than 0 and less than 100.");
 		return;
 	}
 
 	// Keep only Luma plane.
 	VSMap* Args = api->createMap();
-	if (!Skip)
 	{
 		api->propSetNode(Args, "clips", Input, paReplace);
 		api->propSetInt(Args, "planes", 0, paReplace);
 		api->propSetInt(Args, "colorfamily", cmGray, paReplace);
 		Input = Env.InvokeClip("std", "ShufflePlanes", Args, Input);
-	}
-
-	// Reduce range and convert to linear light (gamma 2.2).
-	if (Input && !Skip)
-	{
-		int RangeMin = (255 - Range) / 2;
-		int RangeMax = Range + RangeMin;
-		api->clearMap(Args);
-		api->propSetNode(Args, "clip", Input, paReplace);
-		api->propSetFloat(Args, "gamma", 1 / 2.2, paReplace);
-		api->propSetFloat(Args, "min_in", SrcFullRange ? 0 : 16, paReplace);
-		api->propSetFloat(Args, "max_in", SrcFullRange ? 255 : 235, paReplace);
-		api->propSetFloat(Args, "min_out", RangeMin, paReplace);
-		api->propSetFloat(Args, "max_out", RangeMax, paReplace);
-		Input = Env.InvokeClip("std", "Levels", Args, Input);
 	}
 
 	// Convert to 8-bit.
@@ -67,7 +56,22 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 		api->propSetInt(Args, "format", pfGray8, paReplace);
 		Input = Env.InvokeClip("resize", "Point", Args, Input);
 	}
-	
+
+	// Reduce range and apply gamma.
+	if (Input)
+	{
+		//int RangeMin = (255 - Range) / 2;
+		//int RangeMax = Range + RangeMin;
+		api->clearMap(Args);
+		api->propSetNode(Args, "clip", Input, paReplace);
+		api->propSetFloat(Args, "gamma", 1.0 / Gamma, paReplace);
+		api->propSetFloat(Args, "min_in", SrcFullRange ? 0 : 16, paReplace);
+		api->propSetFloat(Args, "max_in", SrcFullRange ? 255 : 235, paReplace);
+		api->propSetFloat(Args, "min_out", 0, paReplace);
+		api->propSetFloat(Args, "max_out", Range, paReplace);
+		Input = Env.InvokeClip("std", "Levels", Args, Input);
+	}
+
 	// Create StripeMask.
 	if (Input)
 	{

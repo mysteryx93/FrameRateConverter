@@ -10,7 +10,7 @@ extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScri
 {
 	AVS_linkage = vectors;
 	env->AddFunction("ConditionalFilterMT", "cccsss[show]b", ConditionalFilter::Create, 0);
-	env->AddFunction("StripeMask", "c[blkSize]i[blkSizeV]i[overlap]i[overlapV]i[thr]i[comp]i[compV]i[str]i[strf]i[fullRange]b[lines]b", StripeMaskAvs::Create, 0);
+	env->AddFunction("StripeMask", "c[blkSize]i[blkSizeV]i[overlap]i[overlapV]i[thr]i[range]i[gamma]f[comp]i[compV]i[str]i[strf]i[fullRange]b[lines]b", StripeMaskAvs::Create, 0);
 	env->AddFunction("ContinuousMask", "c[radius]i[thr]i", ContinuousMaskAvs::Create, 0);
 	env->AddFunction("ConvertFpsLimit", "ci[]i[ratio]i", ConvertFpsLimitAvs::Create, 0);
 	env->AddFunction("ConvertFpsLimit", "cf[ratio]i", ConvertFpsLimitAvs::CreateFloat, 0);

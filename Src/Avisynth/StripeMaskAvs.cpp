@@ -8,18 +8,31 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	int Overlap = args[3].AsInt(BlkSize / 4);
 	int OverlapV = args[4].AsInt(BlkSizeV / 4);
 	int Thr = args[5].AsInt(28);
-	int Comp = args[6].AsInt(BlkSize <= 16 ? 2 : 3);
-	int CompV = args[7].AsInt(Comp);
-	int Str = args[8].AsInt(255);
-	int Strf = args[9].AsInt(0);
-	int FullRange = args[10].AsBool(false);
-	bool Lines = args[11].AsBool(false);
+	int Range = args[6].AsInt(255);
+	int Gamma = args[7].AsFloat(1.0);
+	int Comp = args[8].AsInt(BlkSize <= 16 ? 2 : 3);
+	int CompV = args[9].AsInt(Comp);
+	int Str = args[10].AsInt(255);
+	int Strf = args[11].AsInt(0);
+	int FullRange = args[12].AsBool(false);
+	bool Lines = args[13].AsBool(false);
 
-	int SrcBit = input->GetVideoInfo().BitsPerComponent();
-
-	// Convert to 16-bit.
+	AvsEnvironment Env = AvsEnvironment(PluginName, env);
+	if (Range < 1 || Range > 255)
 	{
-		AVSValue sargs[2] = { input, 16 };
+		Env.ThrowError("Range must be between 1 and 255.");
+	}
+	else if (Gamma <= 0 || Gamma > 100)
+	{
+		Env.ThrowError("Gamma must be greater than 0 and less than 100.");
+	}
+
+	int BitDepth = input->GetVideoInfo().BitsPerComponent();
+
+	// Convert input to 8-bit; nothing to gain in processing at higher bit-depth.
+	if (BitDepth > 8)
+	{
+		AVSValue sargs[2] = { input, 8 };
 		const char* nargs[2] = { 0, 0 };
 		input = env->Invoke("ConvertBits", AVSValue(sargs, 2), nargs).AsClip();
 	}
@@ -32,33 +45,28 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	}
 
 	// Convert to Full levels.
-	if (!FullRange)
-	{
-		AVSValue sargs[2] = { input, "TV->PC" };
-		const char* nargs[2] = { 0, "levels" };
-		input = env->Invoke("ColorYUV", AVSValue(sargs, 2), nargs).AsClip();
-	}
+	//if (!FullRange)
+	//{
+	//	AVSValue sargs[2] = { input, "TV->PC" };
+	//	const char* nargs[2] = { 0, "levels" };
+	//	input = env->Invoke("ColorYUV", AVSValue(sargs, 2), nargs).AsClip();
+	//}
 
-	// Convert input to linear (gamma 2.2)
+	// Convert range and apply gamma.
 	{
-		AVSValue sargs[6] = { input, 0, 1.0/2.2, 65535, 0, 65535 };
-		const char* nargs[6] = { 0, 0, 0, 0, 0, 0 };
+		int InMin = FullRange ? 0 : 16;
+		int InMax = FullRange ? 255 : 235;
+		AVSValue sargs[7] = { input, InMin, 1.0 / Gamma, InMax, 0, Range, false };
+		const char* nargs[7] = { 0, 0, 0, 0, 0, 0, "coring"};
 		input = env->Invoke("Levels", AVSValue(sargs, 6), nargs).AsClip();
-	}
-
-	// Convert input to 8-bit; nothing to gain in processing at higher bit-depth.
-	{
-		AVSValue sargs[2] = { input, 8 };
-		const char* nargs[2] = { 0, 0 };
-		input = env->Invoke("ConvertBits", AVSValue(sargs, 2), nargs).AsClip();
 	}
 
 	input = new StripeMaskAvs(input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines, env);
 
 	// Convert back to original bit depth.
-	if (SrcBit > 8)
+	if (BitDepth > 8)
 	{
-		AVSValue sargs[2] = { input, SrcBit };
+		AVSValue sargs[2] = { input, BitDepth };
 		const char* nargs[2] = { 0, 0 };
 		input = env->Invoke("ConvertBits", AVSValue(sargs, 2), nargs).AsClip();
 	}

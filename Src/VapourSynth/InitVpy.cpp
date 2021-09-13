@@ -20,12 +20,12 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 		"overlapv:int:opt;"
 		"thr:int:opt;"
 		"range:int:opt;"
+		"gamma:float:opt;"
 		"comp:int:opt;"
 		"compv:int:opt;"
 		"str:int:opt;"
 		"strf:int:opt;"
-		"lines:int:opt;"
-		"skip:int:opt;",
+		"lines:int:opt;",
 		StripeMaskVpy::Create, 0, plugin);
 	registerFunc("ConvertFpsLimit",
 		"clip:clip;"

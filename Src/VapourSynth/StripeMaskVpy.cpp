@@ -130,7 +130,6 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 		{
 			src2 = api->getFrameFilter(n + 1, Node, frameCtx);
 		}
-		//auto dst = api->copyFrame(src, core);
 
 		VSFrameRef* dst = api->newVideoFrame(viDst.format, viDst.width, viDst.height, src, core);
 		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), env);

@@ -9,7 +9,7 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	int OverlapV = args[4].AsInt(BlkSizeV / 4);
 	int Thr = args[5].AsInt(28);
 	int Range = args[6].AsInt(255);
-	int Gamma = args[7].AsFloat(1.0);
+	double Gamma = args[7].AsFloat(1.0);
 	int Comp = args[8].AsInt(BlkSize <= 16 ? 2 : 3);
 	int CompV = args[9].AsInt(Comp);
 	int Str = args[10].AsInt(255);
@@ -58,7 +58,7 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 		int InMax = FullRange ? 255 : 235;
 		AVSValue sargs[7] = { input, InMin, 1.0 / Gamma, InMax, 0, Range, false };
 		const char* nargs[7] = { 0, 0, 0, 0, 0, 0, "coring"};
-		input = env->Invoke("Levels", AVSValue(sargs, 6), nargs).AsClip();
+		input = env->Invoke("Levels", AVSValue(sargs, 7), nargs).AsClip();
 	}
 
 	input = new StripeMaskAvs(input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines, env);
@@ -89,6 +89,7 @@ PVideoFrame __stdcall StripeMaskAvs::GetFrame(int n, IScriptEnvironment* env)
 	{
 		src2 = child->GetFrame(n + 1, env);
 	}
+
 	ProcessFrame(AvsFrame(src, vi), AvsFrame(src2, vi), AvsFrame(dst, vi), AvsEnvironment(PluginName, env));
 	return dst;
 }

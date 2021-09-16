@@ -1,9 +1,9 @@
 #include "StripeMaskBase.h"
 
-const char* StripeMaskBase::PluginName = "StripeMask";
+const char* StripeMaskBase::PluginName = "StripeMaskPass";
 
-StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines) :
-	source(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), strf(_strf), lines(_lines)
+StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines) :
+	source(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), lines(_lines)
 {
 	if (!_child->IsYUV() && !_child->IsY())
 		env.ThrowError("clip must be Y or YUV format");
@@ -23,8 +23,6 @@ StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, in
 		env.ThrowError("CompV must be between 2 and 5");
 	if (str < 0 || str > 255)
 		env.ThrowError("Str must be between 0 and 255");
-	if (strf < 0 || strf > 255)
-		env.ThrowError("StrF must be between 0 and 255");
 
 	// int b = _child.BitsPerSample();
 	// vi.pixel_type = b == 8 ? VideoInfo::CS_Y8 : b == 10 ? VideoInfo::CS_Y10 : b == 12 ? VideoInfo::CS_Y12 : b == 14 ? VideoInfo::CS_Y14 : b == 16 ? VideoInfo::CS_Y16 : b == 32 ? VideoInfo::CS_Y32 : VideoInfo::CS_Y8;
@@ -38,7 +36,7 @@ StripeMaskBase::~StripeMaskBase()
 	}
 }
 
-void StripeMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& src2, ICommonFrame& dst, ICommonEnvironment& env)
+void StripeMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& dst, ICommonEnvironment& env)
 {
 	int width = source->Width();
 	int height = source->Height();
@@ -55,22 +53,6 @@ void StripeMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& src2, ICommon
 	BYTE* LineAvgV = new BYTE[height]; // may need to size mod 16
 	PatternStep* HistoryH = new PatternStep[width + 2]; // +2 to store initial data to compare to
 	PatternStep* HistoryV = new PatternStep[height + 2];
-
-	// Add next frame with 50% transparency.
-	if (src2.HasValue())
-	{
-		const BYTE* srcp2 = src2.GetReadPtr();
-		int srcPitch2 = src2.GetStride();
-
-		if (blksize > 0)
-		{
-			CalcFrame(srcp2, srcPitch2, dstp, dstPitch, LineAvgH, HistoryH, strf, false);
-		}
-		if (blksizev > 0)
-		{
-			CalcFrame(srcp2, srcPitch2, dstp, dstPitch, LineAvgV, HistoryV, strf, true);
-		}
-	}
 
 	// Calculte current frame.
 	if (blksize > 0)

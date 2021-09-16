@@ -20,9 +20,9 @@ public:
 	static const char* PluginName;
 
 protected:
-	StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines);
+	StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines);
 	~StripeMaskBase();
-	void ProcessFrame(ICommonFrame& src, ICommonFrame& src2, ICommonFrame& dst, ICommonEnvironment& env);
+	void ProcessFrame(ICommonFrame& src, ICommonFrame& dst, ICommonEnvironment& env);
 
 private:
 	void CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical);
@@ -42,6 +42,5 @@ protected:
 	const int comp;
 	const int compv;
 	const int str;
-	const int strf;
 	const bool lines;
 };

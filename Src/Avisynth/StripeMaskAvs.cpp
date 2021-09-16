@@ -9,13 +9,12 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	int OverlapV = args[4].AsInt(BlkSizeV / 4);
 	int Thr = args[5].AsInt(28);
 	int Range = args[6].AsInt(255);
-	double Gamma = args[7].AsFloat(1.0);
+	double Gamma = args[7].AsFloat(2.2);
 	int Comp = args[8].AsInt(BlkSize <= 16 ? 2 : 3);
 	int CompV = args[9].AsInt(Comp);
 	int Str = args[10].AsInt(255);
-	int Strf = args[11].AsInt(0);
-	int FullRange = args[12].AsBool(false);
-	bool Lines = args[13].AsBool(false);
+	int FullRange = args[11].AsBool(false);
+	bool Lines = args[12].AsBool(false);
 
 	AvsEnvironment Env = AvsEnvironment(PluginName, env);
 	if (Range < 1 || Range > 255)
@@ -61,7 +60,7 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 		input = env->Invoke("Levels", AVSValue(sargs, 7), nargs).AsClip();
 	}
 
-	input = new StripeMaskAvs(input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines, env);
+	input = new StripeMaskAvs(input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Lines, env);
 
 	// Convert back to original bit depth.
 	if (BitDepth > 8)
@@ -73,8 +72,8 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	return input;
 }
 
-StripeMaskAvs::StripeMaskAvs(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, int _strf, bool _lines, IScriptEnvironment* env) :
-	GenericVideoFilter(_child), StripeMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _blksize, _blksizev, _overlap, _overlapv, _thr, _comp, _compv, _str, _strf, _lines)
+StripeMaskAvs::StripeMaskAvs(PClip _child, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines, IScriptEnvironment* env) :
+	GenericVideoFilter(_child), StripeMaskBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), _blksize, _blksizev, _overlap, _overlapv, _thr, _comp, _compv, _str, _lines)
 {
 	int b = vi.BitsPerComponent();
 	vi.pixel_type = b == 8 ? VideoInfo::CS_Y8 : b == 10 ? VideoInfo::CS_Y10 : b == 12 ? VideoInfo::CS_Y12 : b == 14 ? VideoInfo::CS_Y14 : b == 16 ? VideoInfo::CS_Y16 : b == 32 ? VideoInfo::CS_Y32 : VideoInfo::CS_Y8;
@@ -83,14 +82,8 @@ StripeMaskAvs::StripeMaskAvs(PClip _child, int _blksize, int _blksizev, int _ove
 PVideoFrame __stdcall StripeMaskAvs::GetFrame(int n, IScriptEnvironment* env)
 {
 	PVideoFrame src = child->GetFrame(n, env);
-	PVideoFrame src2 = nullptr;
 	PVideoFrame dst = env->NewVideoFrame(vi);
-	if (strf > 0 && n < vi.num_frames - 1)
-	{
-		src2 = child->GetFrame(n + 1, env);
-	}
-
-	ProcessFrame(AvsFrame(src, vi), AvsFrame(src2, vi), AvsFrame(dst, vi), AvsEnvironment(PluginName, env));
+	ProcessFrame(AvsFrame(src, vi), AvsFrame(dst, vi), AvsEnvironment(PluginName, env));
 	return dst;
 }
 

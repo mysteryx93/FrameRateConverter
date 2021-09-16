@@ -10,11 +10,11 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int OverlapV = prop.GetInt("overlapv", BlkSizeV / 4);
 	int Thr = prop.GetInt("thr", 15);
 	int Range = prop.GetInt("range", 125);
-	double Gamma = prop.GetFloat("gamma", 1.0);
+	double Gamma = prop.GetFloat("gamma", 2.2);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
 	int CompV = prop.GetInt("compv", Comp);
 	int Str = prop.GetInt("str", 255);
-	int Strf = prop.GetInt("strf", 0);
+	//int Strf = prop.GetInt("strf", 0);
 	bool Lines = prop.GetInt("lines", false);
 
 	bool SrcFullRange = prop.GetInt("_ColorRange", 1) == 0;
@@ -75,7 +75,7 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	// Create StripeMask.
 	if (Input)
 	{
-		auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Strf, Lines);
+		auto f = new StripeMaskVpy(in, out, core, api, Input, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, Lines);
 		f->CreateFilter(in, out);
 
 		if (!f->HasError())
@@ -100,9 +100,9 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 }
 
 StripeMaskVpy::StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,
-	int blkSize, int blkSizeV, int overlap, int overlapV, int thr, int comp, int compV, int str, int strf, bool lines) :
+	int blkSize, int blkSizeV, int overlap, int overlapV, int thr, int comp, int compV, int str, bool lines) :
 	VpyFilter(PluginName, in, out, node, core, api),
-	StripeMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), blkSize, blkSizeV, overlap, overlapV, thr, comp, compV, str, strf, lines)
+	StripeMaskBase(new VpyVideo(node, api), VpyEnvironment(PluginName, api, core, out), blkSize, blkSizeV, overlap, overlapV, thr, comp, compV, str, lines)
 {
 	int b = viSrc->format->bitsPerSample;
 	viDst.format = api->getFormatPreset(b <= 8 ? pfGray8 : b <= 16 ? pfGray16 : b == 32 ? pfGrayS : pfGray8, core);
@@ -117,28 +117,14 @@ VSFrameRef* StripeMaskVpy::GetFrame(int n, int activationReason, void** frameDat
 	if (activationReason == arInitial)
 	{
 		api->requestFrameFilter(n, Node, frameCtx);
-		if (strf > 0 && n < viSrc->numFrames - 1)
-		{
-			api->requestFrameFilter(n + 1, Node, frameCtx);
-		}
 	}
 	else if (activationReason == arAllFramesReady)
 	{
 		const VSFrameRef* src = api->getFrameFilter(n, Node, frameCtx);
-		const VSFrameRef* src2 = nullptr;
-		if (strf > 0 && n < viSrc->numFrames - 1)
-		{
-			src2 = api->getFrameFilter(n + 1, Node, frameCtx);
-		}
-
 		VSFrameRef* dst = api->newVideoFrame(viDst.format, viDst.width, viDst.height, src, core);
-		ProcessFrame(VpyFrame(src, api), VpyFrame(src2, api), VpyFrame(dst, api), env);
+		ProcessFrame(VpyFrame(src, api), VpyFrame(dst, api), env);
 
 		api->freeFrame(src);
-		if (src2)
-		{
-			api->freeFrame(src2);
-		}
 		return dst;
 	}
 

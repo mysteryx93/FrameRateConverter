@@ -397,14 +397,20 @@ def GaussianBlur42(C, var = None, rad = None, vvar = None, vrad = None, p = None
     else:
         return B.resize.Bilinear(w0, h0)
 
-def StripeMask2(clip, blksize = None, blksizev = None, overlap = None, overlapv = None, thr = None, range = None, gamma = None, comp = None, compv = None, str = None, strf = None, lines = None):
+def StripeMask(clip, blksize = 16, blksizev = None, str = 200, strf = 0):
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('StripeMask: This is not a clip')
 
-    mask = clip.frc.StripeMask(blksize=blksize, blksizev=blksizev, overlap=overlap, overlapv=overlapv, thr=thr, range=range, gamma=gamma, comp=comp, compv=compv, str=str, strf=0, lines=lines)
+    blksizev = blksizev or blksize
+    mask1 = clip.frc.StripeMaskPass(blksize=blksize, blksizev=blksizev, overlap=blksize//2+1, overlapv=blksizev//2+1, thr=29, range=241, gamma=2.2, str=str)
+    blksize *= 1.25
+    blksizev *= 1.25
+    mask2 = clip.frc.StripeMaskPass(blksize=blksize, blksizev=blksizev, overlap=blksize//2+1, overlapv=blksizev//2+1, thr=42, range=214, gamma=2.2, comp=5, str=str)
+
     if strf > 0:
-        maskf = mask.std.DeleteFrames(frames=[0]).std.DuplicateFrames(frames=[clip.num_frames-2])
-        return core.std.Expr(clips=[mask, maskf], expr=f"x {str} y {strf} 0 ? ?")
+        mask1f = mask1.std.DeleteFrames(frames=[0]).std.DuplicateFrames(frames=[clip.num_frames-2])
+        mask2f = mask2.std.DeleteFrames(frames=[0]).std.DuplicateFrames(frames=[clip.num_frames-2])
+        return core.std.Expr(clips=[mask1, mask2, mask1f, mask2f], expr=f"x {str} y {str} z {strf} a {strf} 0 ? ? ? ?")
     else:
-        return mask
+        return core.std.Expr(clips=[mask1, mask2], expr=f"x {str} y {str} 0 ? ?")
     

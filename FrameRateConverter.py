@@ -26,7 +26,7 @@
 ### Increases the frame rate with interpolation and fine artifact removal.
 ##
 ## YV12/YV24/Y8/YUY2
-## Requires: FrameRateConverter.dll, MaskTools2, MvTools2 (pinterf), GRunT (for debug only)
+## Requires: FrameRateConverter.dll, MvTools2
 ##
 ## @ newNum      - The new framerate numerator (if frameDouble = False, default = 60)
 ##
@@ -238,14 +238,11 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     
     # Mask: Stripes
     if stp:
-        EMstp = StripeMask2(C, blksize=blkSize, blksizev=blkSizeV, str=min(skipThr*2+20, 255), strf=min(skipThr+10, 255), thr=27, range=241, gamma=2.2)
-        #EMstp = StripeMask2(C, blksize=blkSize, blksizev=blkSizeV, str=min(skipThr*2+20, 255), strf=min(skipThr+10, 255), thr=15, range=150, gamma=2.2)
-        #EMstp = StripeMask2(C, blksize=blkSize, blksizev=blkSizeV, str=min(skipThr*2+20, 255), strf=min(skipThr+10, 255), thr=17, range=205, gamma=2.87)
-        #EMstp = StripeMask2(C, blksize=blkSize, blksizev=blkSizeV, str=min(skipThr*2+20, 255), strf=min(skipThr+10, 255), thr=33, range=171, gamma=2.03, comp=5, overlap=12)
+        EMstp = StripeMask(C, blksize=blkSize, blksizev=blkSizeV, str=min(skipThr*2+20, 255), strf=min(skipThr+10, 255))
         EMstp = EMstp.resize.Bicubic(round(C.width/blkSize)*4, round(C.height/blkSizeV)*4) \
             .frc.ContinuousMask(22)
         EMstp = EMstp.resize.Bicubic(EMstp.width//2, EMstp.height//2) \
-            .std.Binarize(82) \
+            .std.Binarize(78) \
             .std.Minimum() \
             .std.Maximum() \
             .std.Maximum(coordinates=[0, 1, 0, 1, 1, 0, 1, 0]) \
@@ -255,9 +252,8 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
             .std.Maximum(coordinates=[0, 1, 0, 1, 1, 0, 1, 0]) \
             .std.Maximum() \
             .std.Maximum(coordinates=[0, 1, 0, 1, 1, 0, 1, 0])
-            #.mt_expand(mode= mt_circle(zero=True, radius=8))
-        EMstp = GaussianBlur42(EMstp, 2.8) \
-            .resize.Bicubic(C.width, C.height)
+        EMstp = GaussianBlur42(EMstp, 2.8)
+        EMstp = EMstp.resize.Bicubic(C.width, C.height)
     
     ## "M" - Apply artifact removal
     if outFps:
@@ -397,6 +393,20 @@ def GaussianBlur42(C, var = None, rad = None, vvar = None, vrad = None, p = None
     else:
         return B.resize.Bilinear(w0, h0)
 
+#######################################################################################
+### StripeMask
+### Create a mask detecting horizontal and vertical stripes.
+##
+## Requires: FrameRateConverter.dll
+##
+## @ blkSize     - The processing block size.
+## 
+## @ blkSizeV    - The vertical block size. (default = blkSize)
+##
+## @ str         - The grey color of the masked areas.
+##
+## @ strf        - The grey color of the masked areas from the next frame.
+##
 def StripeMask(clip, blksize = 16, blksizev = None, str = 200, strf = 0):
     if not isinstance(clip, vs.VideoNode):
         raise vs.Error('StripeMask: This is not a clip')

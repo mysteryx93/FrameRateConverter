@@ -378,6 +378,6 @@ function StripeMask(clip C, int "blksize", int "blksizev", int "str", int "strf"
     mask2f = mask2.DeleteFrame(0).DuplicateFrame(C.FrameCount - 2)
     
     return strf > 0 ?
-    \    Expr(mask1, mask2, mask1f, mask2f, "x x y y z z a a 0 ? ? ? ?") :
+    \    Expr(mask1, mask2, mask1f, mask2f, "x x y y z " + string(strf) + " a " + string(strf) + " 0 ? ? ? ?") :
     \    Expr(mask1, mask2, "x x y y 0 ? ?")
 }

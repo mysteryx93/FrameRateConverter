@@ -75,7 +75,9 @@
 ## @ DctRe       - Overrides DCT parameter for MRecalculate (default: Fast=0, Normal=4, Slowest=1)
 ##
 ## @ BlendRatio  - Changes the blend ratio used to fill artifact zones. 0 = frame copy and 100 = full blend.
-##                 Other values provide a result in-between to eliminate ghost effects. Default = 40.
+##                 Other values provide a result in-between to eliminate ghost effects. (default = 40)
+##
+## @ FullRange   - True if source is Full(PC) range, False if source is Limited(TV) range. (default = false)
 ##                 
 ##
 ## Presets
@@ -88,7 +90,7 @@
 ## Anime:   Slow with BlendOver=40, SkipOver=140
 ##
 function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset", int "BlkSize", int "BlkSizeV", bool "FrameDouble", string "Output", bool "Debug",
-\ clip "Prefilter", int "MaskThr", int "MaskOcc", int "SkipThr", int "BlendOver", int "SkipOver", bool "Stp", int "Dct", int "DctRe", int "BlendRatio")
+\ clip "Prefilter", int "MaskThr", int "MaskOcc", int "SkipThr", int "BlendOver", int "SkipOver", bool "Stp", int "Dct", int "DctRe", int "BlendRatio", bool "FullRange")
 {
     Preset = Default(Preset, "normal")
     P_SLOWEST = 0  P_SLOWER = 1  P_SLOW = 2  P_NORMAL = 3  P_FAST = 4  P_FASTER = 5  P_ANIME = 6
@@ -116,6 +118,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     Prefilter   = Default(Prefilter, C)
     Debug       = Default(Debug, false)
     BlendRatio  = Default(BlendRatio, 40)
+    FullRange   = Default(FullRange, false)
 
     OutFps      = OPut!=O_MASK && OPut!=O_SKIP && OPut!=O_RAW && OPut!=O_DIFF && OPut!=O_STRIPE  # Whether output has altered frame rate
     PSET        = PSET == P_ANIME ? P_SLOW : PSET
@@ -211,7 +214,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .BicubicResize(C.Width, C.Height)
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipThr*2+20, 255), strf=min(SkipThr+10, 255))
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipThr*2+20, 255), strf=min(SkipThr+10, 255), fullRange=FullRange)
     \      .BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
     \      .ContinuousMask(22)
     EMstp = EMstp.BicubicResize(EMstp.Width/2, EMstp.Height/2)
@@ -362,17 +365,18 @@ function FRC_GaussianBlur42(clip C,
 ##
 ## @ strf        - The grey color of the masked areas from the next frame.
 ##
-function StripeMask(clip C, int "blksize", int "blksizev", int "str", int "strf")
+function StripeMask(clip C, int "blksize", int "blksizev", int "str", int "strf", bool "fullRange")
 {
     blksize = Default(blksize, 16)
     blksizev = Default(blksizev, blksize)
     str = Default(str, 200)
     strf = Default(strf, 0)
+    fullRange = Default(fullRange, false)
 
-    mask1 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=29, range=241, gamma=2.2, str=str)
+    mask1 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=29, range=241, gamma=2.2, str=str, fullRange=fullRange)
 	blksize = int(float(blksize) * 1.25)
     blksizev = int(float(blksizev) * 1.25)
-    mask2 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=42, range=214, gamma=2.2, comp=5, str=str)
+    mask2 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=42, range=214, gamma=2.2, comp=5, str=str, fullRange=fullRange)
 
     mask1f = mask1.DeleteFrame(0).DuplicateFrame(C.FrameCount - 2)
     mask2f = mask2.DeleteFrame(0).DuplicateFrame(C.FrameCount - 2)

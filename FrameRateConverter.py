@@ -32,7 +32,7 @@
 ##
 ## @ newDen      - The new framerate denominator (if frameDouble = False, default = 1)
 ##
-## @ preset      - The speed/quality preset [slowest|slower|slow|normal|fast|faster|anime]. (default=normal)
+## @ preset      - The speed/quality preset [slowest|slower|slow|normal|fast|faster|anime|rife|rifeanime]. (default=normal)
 ##
 ## @ blkSize     - The block size. Latest MvTools2.dll version from Pinterf supports 6, 8, 12, 16, 24, 32, 48 and 64.
 ##                 Defaults for 4/3 video of height:
@@ -55,9 +55,9 @@
 ## @ prefilter   - Specifies a prefilter such as RgTools' RemoveGrain(21). Recommended only when not using a denoiser (Default=none)
 ##
 ## @ maskThr     - The threshold where a block is considered bad, between 0 and 255. Smaller = stronger.
-##                 0 to disable artifact masking. (Default = 120)
+##                 0 to disable artifact masking. (Default = 95)
 ##
-## @ maskOcc     - Occlusion mask threshold, between 0 and 255. 0 to disable occlusion masking. (Default = 105)
+## @ maskOcc     - Occlusion mask threshold, between 0 and 255. 0 to disable occlusion masking. (Default = 125)
 ##
 ## @ skipThr     - The threshold where a block is counted for the skip mask, between 0 and 255. Smaller = stronger.
 ##                 Must be smaller (stronger) than maskThr. (Default = 55)
@@ -82,13 +82,15 @@
 ##                 
 ##
 ## Presets
-## Faster:  Basic interpolation
-## Fast:    MRecalculate
-## Normal:  MRecalculate with DCT=4
-## Slow:    MAnalyze + MRecalculate with DCT=4
-## Slower:  Calculate diff between DCT=4 and DCT=1 to take the best from both
-## Slowest: Calculate diff between DCT=1 and DCT=0 to take the best from both
-## Anime:   Slow with blendOver=40, skipOver=140
+## faster:  Basic interpolation
+## fast:    MRecalculate
+## normal:  MRecalculate with DCT=4
+## slow:    MAnalyze + MRecalculate with DCT=4
+## slower:  Calculate diff between DCT=4 and DCT=1 to take the best from both
+## slowest: Calculate diff between DCT=1 and DCT=0 to take the best from both
+## anime:   Slow with blendOver=40, skipOver=140
+## rife:    Slow with rife=2, maskThr=80
+## rifeanime: Both Anime and Rife presets
 ##
 
 import functools
@@ -98,14 +100,14 @@ import vapoursynth as vs
 core = vs.get_core()
 
 def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSize = None, blkSizeV = None, frameDouble = None, output = "auto", debug = False, \
-    prefilter = None, maskThr = 95, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife = 0):
+    prefilter = None, maskThr = None, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife = None, rifeModel = None, rifeTta = False, rifeGpu = 0):
     if not isinstance(C, vs.VideoNode):
         raise vs.Error('FrameRateConverter: This is not a clip')
 
-    P_SLOWEST, P_SLOWER, P_SLOW, P_NORMAL, P_FAST, P_FASTER, P_ANIME = 0, 1, 2, 3, 4, 5, 6
-    pset = P_SLOWEST if preset == "slowest" else P_SLOWER if preset == "slower" else P_SLOW if preset == "slow" else P_NORMAL if preset == "normal" else P_FAST if preset == "fast" else P_FASTER if preset == "faster" else P_ANIME if preset == "anime" else -1
+    P_SLOWEST, P_SLOWER, P_SLOW, P_NORMAL, P_FAST, P_FASTER, P_ANIME, P_RIFE, P_RIFEANIME = 0, 1, 2, 3, 4, 5, 6, 7, 8
+    pset = P_SLOWEST if preset == "slowest" else P_SLOWER if preset == "slower" else P_SLOW if preset == "slow" else P_NORMAL if preset == "normal" else P_FAST if preset == "fast" else P_FASTER if preset == "faster" else P_ANIME if preset == "anime" else P_RIFE if preset == "rife" else P_RIFEANIME if preset == "rifeanime" else -1
     if (pset < 0):
-        raise vs.Error("FrameRateConverter: 'preset' must be slowest, slower, slow, normal, fast, faster or anime {'" + preset + "'}")
+        raise vs.Error("FrameRateConverter: 'preset' must be slowest, slower, slow, normal, fast, faster, anime or rife {'" + preset + "'}")
     O_AUTO, O_FLOW, O_OVER, O_NONE, O_RAW, O_MASK, O_SKIP, O_DIFF, O_STRIPE = 0, 1, 2, 3, 4, 5, 6, 7, 8
     oput = O_AUTO if output == "auto" else O_FLOW if output == "flow" else O_OVER if output == "over" else O_NONE if output == "none" else O_RAW if output == "raw" else O_MASK if output == "mask" else O_SKIP if output == "skip" else O_DIFF if output == "diff" else O_STRIPE if output == "stripe" else -1
     if (oput < 0):
@@ -119,14 +121,19 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     defH        = max(C.height, C.width//4*3)
     blkSize     = blkSize or (8 if defH<360 else 12 if defH<750 else 16 if defH<1200 else 24 if defH<1600 else 32)
     blkSizeV    = blkSizeV or blkSize
-    maskOcc     = (maskOcc or 105) if maskThr > 0 else 0
+    maskThr     = maskThr or (80 if pset==P_RIFE or pset==P_RIFEANIME else 95)
+    maskOcc     = (maskOcc or 125) if maskThr > 0 else 0
     blendOver   = blendOver or (40 if pset==P_ANIME else 70)
     skipOver    = skipOver or (140 if pset==P_ANIME else 210)
     calcPrefilter = bool(prefilter)
     prefilter   = prefilter or C
+    rife        = rife or (2 if pset==P_RIFE or pset==P_RIFEANIME else 0)
+    rifeModel   = rifeModel or (2 if pset==P_RIFEANIME else 1)
+    if rife>0 and frameDouble:
+        rife = 1
 
     outFps      = oput!=O_MASK and oput!=O_SKIP and oput!=O_RAW and oput!=O_DIFF and oput!=O_STRIPE  # Whether output has altered frame rate
-    if pset == P_ANIME:
+    if pset == P_ANIME or pset == P_RIFE or pset == P_RIFEANIME:
         pset = P_SLOW
     recalculate = pset <= P_FAST
     dctRe       = (dctRe or dct or (1 if pset<=P_SLOWEST else 4 if pset<=P_NORMAL else 0)) if recalculate else 0
@@ -149,16 +156,16 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     if oput == O_DIFF and not calcDiff:
         raise vs.Error("FrameRateConverter: You can only use output='Diff' when using preset=slower or slowest")
 
-    ## "B" - Blending, "BHard" - No blending
-    B = C
+    ## BSoft = Blending, BHard = No blending, B = RIFE + Blending
+    B = BSoft = C.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
     if rife > 0:
-        B = B.resize.Bicubic(format=vs.RGBS, matrix_in_s="709")
+        B = C.resize.Bicubic(format=vs.RGBS, matrix_in_s="709")
         i = 0
         while (i < rife):
             i += 1
-            B = B.rife.RIFE(uhd=C.height>1300)
+            B = B.rife.RIFE(uhd=C.height>1300, model=rifeModel, tta=rifeTta, gpu_id=rifeGpu)
         B = B.resize.Bicubic(format=C.format, matrix_s="709")
-    B = B.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
+        B = B.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
     BHard = havs.ChangeFPS(C, newNum, newDen)
     Blank = core.std.BlankClip(C.resize.Point(format=vs.GRAY8))
 
@@ -184,7 +191,7 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     Flow = core.mv.FlowFPS(C, super, bak, fwd, num=newNum, den=newDen, blend=False, ml=200, mask=2, thscd2=255)
 
     ## "EM" - error or artifact mask
-    EM = EMfwd = EMooc = EM = Blank
+    EM = EMfwd = EMocc = EM = Blank
     # Mask: SAD
     if maskThr > 0:
         EM = ToGray(C.mv.Mask(bak, ml=255, kind=1, gamma=1/gam, ysc=255, thscd2=skipOver))
@@ -194,13 +201,13 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     # Mask: Occlusion
     if maskOcc > 0:
         EMocc = ToGray(C.mv.Mask(bak, ml=maskOcc, kind=2, gamma=1/gam, ysc=255, thscd2=skipOver).std.Minimum())
-        EM = havs.Overlay(EM, EMocc, opacity=.4, mode="lighten")
+        EM = havs.Overlay(EM, EMocc, opacity=.7, mode="lighten")
     if dct_mult!=1 or dct_pow!=1:
        EM = core.std.Expr(EM, f"x {dct_mult} * {dct_pow} pow")
 
     ## For calcDiff, calculate a 2nd version and create mask to restore from 2nd version the areas that look better
     if calcDiff:
-        EM2 = EMfwd2 = EMooc2 = EM2 = Blank
+        EM2 = EMfwd2 = EMocc2 = EM2 = Blank
         bakA = core.mv.Analyse(superfilt, isb=True, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=dctDiff)
         fwdA = core.mv.Analyse(superfilt, isb=False, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=dctDiff)
         if recalculate:
@@ -215,7 +222,7 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
             EM2 = havs.Overlay(EM2, EMfwd2, opacity=.6, mode="lighten")
         if maskOcc > 0:
             EMocc2 = ToGray(C.mv.Mask(bak2, ml=maskOcc, kind=2, gamma=1/gam, ysc=255, thscd2=skipOver).std.Minimum())
-            EM2 = havs.Overlay(EM2, EMocc2, opacity=.4, mode="lighten")
+            EM2 = havs.Overlay(EM2, EMocc2, opacity=.7, mode="lighten")
 
         # Get difference mask between two versions
         EMdiff = core.std.Expr([EM, EM2], "x y -") \
@@ -246,8 +253,10 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     EM = EM.resize.Bicubic(round(C.width/blkSize/4.0)*4, round(C.height/blkSizeV/4.0)*4) \
         .std.Maximum(coordinates=[0, 1, 0, 1, 1, 0, 1, 0]) \
         .std.Binarize(maskThr) \
-        .std.Convolution(matrix=[8, 29, 8, 29, 110, 29, 8, 29, 8]) \
-        .resize.Bicubic(C.width, C.height)
+        .std.Convolution(matrix=[8, 29, 8, 29, 110, 29, 8, 29, 8])
+    if rife:
+        EM = EM.std.Maximum()
+    EM = EM.resize.Bicubic(C.width, C.height)
     
     # Mask: Stripes
     if stp:
@@ -285,7 +294,7 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
 
     ## Apply blendOver and skipOver
     EMskip = EMskip.std.PlaneStats(plane=0)
-    M2 = core.std.FrameEval(B, functools.partial(thrSelect, thr=skipOver/256, clipa=B, clipb=BHard, core=core), prop_src=[EMskip]) if skipOver > 0 else B
+    M2 = core.std.FrameEval(B, functools.partial(thrSelect, thr=skipOver/256, clipa=BSoft, clipb=BHard, core=core), prop_src=[EMskip]) if skipOver > 0 else B
     if blendOver > 0:
        M = core.std.FrameEval(M, functools.partial(thrSelect, thr=blendOver/256, clipa=M, clipb=M2, core=core), prop_src=[EMskip])
 

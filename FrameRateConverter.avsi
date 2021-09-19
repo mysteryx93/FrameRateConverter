@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 1.3 (2019-06-01)
+# Version: 2.0 (2021-09-18) beta 9
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -172,8 +172,8 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     ## For CalcDiff, calculate a 2nd version and create mask to restore from 2nd version the areas that look better
     bak2 = CalcDiff ? MAnalyse(superfilt, isb=true, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=0) : nop
     fwd2 = CalcDiff ? MAnalyse(superfilt, isb=false, blksize=BlkSize, blksizev=BlkSizeV, overlap = BlkSize>4?(BlkSize/4+1)/2*2:0, overlapv = BlkSizeV>4?(BlkSizeV/4+1)/2*2:0, search=3, dct=0) : nop
-    fwd2 = CalcDiff ? Recalculate ? MRecalculate(super, fwd2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : fwd : nop
-    bak2 = CalcDiff ? Recalculate ? MRecalculate(super, bak2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100) : bak : nop
+    fwd2 = CalcDiff ? Recalculate ? MRecalculate(super, fwd2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100, dct=0) : fwd : nop
+    bak2 = CalcDiff ? Recalculate ? MRecalculate(super, bak2, blksize=BlkSize/2, blksizev=BlkSizeV/2, overlap = BlkSize/2>4?(BlkSize/8+1)/2*2:0, overlapv = BlkSizeV/2>4?(BlkSizeV/8+1)/2*2:0, thSAD=100, dct=0) : bak : nop
     Flow2 = CalcDiff ? MFlowFps(C, super, bak2, fwd2, num=NewNum, den=NewDen, blend=false, ml=200, mask=2, thSCD2=255) : nop
     # Get raw mask again
     EM2 = CalcDiff ? MaskThr > 0 ? C_luma.MMask(bak2, ml=255, kind=1, gamma=1/gam, ysc=255, thSCD2=SkipOver) : Blank : nop
@@ -211,7 +211,7 @@ function FrameRateConverter(clip C, int "NewNum", int "NewDen", string "Preset",
     \       .BicubicResize(C.Width, C.Height)
 
     # Mask: Stripes
-    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipThr*2+20, 255), strf=min(SkipThr+10, 255), thr=23)
+    EMstp = C.StripeMask(blksize=BlkSize, blksizev=BlkSizeV, str=min(SkipThr*2+20, 255), strf=min(SkipThr+10, 255))
     \      .BicubicResize(Round(C.Width/BlkSize)*4, Round(C.Height/BlkSizeV)*4)
     \      .ContinuousMask(22)
     EMstp = EMstp.BicubicResize(EMstp.Width/2, EMstp.Height/2)
@@ -343,4 +343,41 @@ function FRC_GaussianBlur42(clip C,
     return (var<0.01 && vvar<0.01)   ? C 
     \    : (B.Width>8 && B.Height>8) ? B.GaussResize(w0, h0, p=p)
     \                                : B.BilinearResize(w0, h0)
+}
+
+
+
+
+#######################################################################################
+### StripeMask
+### Create a mask detecting horizontal and vertical stripes.
+##
+## Requires: FrameRateConverter.dll
+##
+## @ blkSize     - The processing block size.
+## 
+## @ blkSizeV    - The vertical block size. (default = blkSize)
+##
+## @ str         - The grey color of the masked areas.
+##
+## @ strf        - The grey color of the masked areas from the next frame.
+##
+function StripeMask(clip C, int "blksize", int "blksizev", int "str", int "strf")
+{
+    blksize = Default(blksize, 16)
+    blksizev = Default(blksizev, blksize)
+    str = Default(str, 200)
+    strf = Default(strf, 0)
+
+    mask1 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=29, range=241, gamma=2.2, str=str)
+	blksize = int(float(blksize) * 1.25)
+    blksizev = int(float(blksizev) * 1.25)
+    mask2 = C.StripeMaskPass(blksize=blkSize, blksizev=blkSizeV, overlap=16/2+1, overlapV=16/2+1, thr=42, range=214, gamma=2.2, comp=5, str=str)
+
+    mask1f = mask1.DeleteFrame(0).DuplicateFrame(C.FrameCount - 2)
+    mask2f = mask2.DeleteFrame(0).DuplicateFrame(C.FrameCount - 2)
+    
+    return strf > 0 ?
+    \    Expr(mask1, mask2, mask1f, mask2f, "x x y y z z a a 0 ? ? ? ?") :
+    \    Expr(mask1, mask2, "x x y y 0 ? ?")
 }

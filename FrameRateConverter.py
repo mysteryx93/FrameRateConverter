@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 2.0 (2021-06-25) beta 3
+# Version: 2.0 (2021-09-18) beta 9
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -84,6 +84,7 @@
 ## Normal:  MRecalculate with DCT=4
 ## Slow:    MAnalyze + MRecalculate with DCT=4
 ## Slower:  Calculate diff between DCT=4 and DCT=1 to take the best from both
+## Slowest: Calculate diff between DCT=1 and DCT=0 to take the best from both
 ## Anime:   Slow with blendOver=40, skipOver=140
 ##
 
@@ -94,7 +95,7 @@ import vapoursynth as vs
 core = vs.get_core()
 
 def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSize = None, blkSizeV = None, frameDouble = None, output = "auto", debug = False, \
-    prefilter = None, maskThr = 95, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50):
+    prefilter = None, maskThr = 95, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife=False):
     if not isinstance(C, vs.VideoNode):
         raise vs.Error('FrameRateConverter: This is not a clip')
 
@@ -126,8 +127,9 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
         pset = P_SLOW
     recalculate = pset <= P_FAST
     dctRe       = (dctRe or dct or (1 if pset<=P_SLOWEST else 4 if pset<=P_NORMAL else 0)) if recalculate else 0
-    dct         = dct or 1 if pset<=P_SLOWEST else 4 if pset<=P_SLOW else 0
+    dct         = dct or 1 if pset<=P_SLOWEST else 4 if pset<=P_SLOW else 1
     calcDiff    = pset <= P_SLOWER
+    dctDiff     = 0 if pset<=P_SLOWEST else 1
 
     if maskThr < 0 or maskThr > 255:
         raise vs.Error(f"FrameRateConverter: maskThr must be between 0 and 255 {maskThr:n}")
@@ -145,7 +147,12 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
         raise vs.Error("FrameRateConverter: You can only use output='Diff' when using preset=slower or slowest")
 
     ## "B" - Blending, "BHard" - No blending
-    B = C.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
+    if rife:
+        B = C.resize.Bicubic(format=vs.RGBS) \
+            .rife.RIFE(uhd=False) \
+            .resize.Bicubic(format=vs.YUV420P8, matrix_s="709")
+    else:
+        B = C.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
     BHard = havs.ChangeFPS(C, newNum, newDen)
     Blank = core.std.BlankClip(C.resize.Point(format=vs.GRAY8))
 
@@ -188,11 +195,11 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
     ## For calcDiff, calculate a 2nd version and create mask to restore from 2nd version the areas that look better
     if calcDiff:
         EM2 = EMfwd2 = EMooc2 = EM2 = Blank
-        bakA = core.mv.Analyse(superfilt, isb=True, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=0)
-        fwdA = core.mv.Analyse(superfilt, isb=False, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=0)
+        bakA = core.mv.Analyse(superfilt, isb=True, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=dctDiff)
+        fwdA = core.mv.Analyse(superfilt, isb=False, blksize=blkSize, blksizev=blkSizeV, overlap = (blkSize//4+1)//2*2 if blkSize>4 else 0, overlapv = (blkSizeV//4+1)//2*2 if blkSizeV>4 else 0, search=3, dct=dctDiff)
         if recalculate:
-            fwd2 = core.mv.Recalculate(super, fwdA, blksize=blkSize//2, blksizev=blkSizeV//2, overlap = (blkSize//8+1)//2*2 if blkSize//2>4 else 0, overlapv = (blkSizeV//8+1)//2*2 if blkSizeV//2>4 else 0, thsad=100)
-            bak2 = core.mv.Recalculate(super, bakA, blksize=blkSize//2, blksizev=blkSizeV//2, overlap = (blkSize//8+1)//2*2 if blkSize//2>4 else 0, overlapv = (blkSizeV//8+1)//2*2 if blkSizeV//2>4 else 0, thsad=100)
+            fwd2 = core.mv.Recalculate(super, fwdA, blksize=blkSize//2, blksizev=blkSizeV//2, overlap = (blkSize//8+1)//2*2 if blkSize//2>4 else 0, overlapv = (blkSizeV//8+1)//2*2 if blkSizeV//2>4 else 0, thsad=100, dct=dctDiff)
+            bak2 = core.mv.Recalculate(super, bakA, blksize=blkSize//2, blksizev=blkSizeV//2, overlap = (blkSize//8+1)//2*2 if blkSize//2>4 else 0, overlapv = (blkSizeV//8+1)//2*2 if blkSizeV//2>4 else 0, thsad=100, dct=dctDiff)
         Flow2 = core.mv.FlowFPS(C, super, bak2, fwd2, num=newNum, den=newDen, blend=False, ml=200, mask=2, thscd2=255)
 
         # Get raw mask again
@@ -278,10 +285,10 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
 
     # Prepare output=Over: Mask(cyan), Stripes(yellow)
     Overlays = core.std.ShufflePlanes(clips=[Blank, EM, EM], planes=[0, 0, 0], colorfamily=vs.RGB)
-    FlowOver = havs.Overlay(Flow.resize.Point(format=vs.RGB24, matrix_in_s="709"), Overlays, mode="addition", opacity=0.5)
+    FlowOver = havs.Overlay(Flow.resize.Point(format=vs.RGB24, matrix_in_s="709"), Overlays, mode="addition", opacity=0.6)
     if stp:
         Overlays = core.std.ShufflePlanes(clips=[EMstp, EMstp, Blank], planes=[0, 0, 0], colorfamily=vs.RGB)
-        FlowOver = havs.Overlay(FlowOver, Overlays, mode="addition", opacity=0.40)
+        FlowOver = havs.Overlay(FlowOver, Overlays, mode="addition", opacity=0.5)
 
     # output modes
     if oput == O_AUTO:                              # auto: artifact masking

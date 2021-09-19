@@ -76,6 +76,9 @@
 ##
 ## @ blendRatio  - Changes the blend ratio used to fill artifact zones. 0 = frame copy and 100 = full blend.
 ##                 Other values provide a result in-between to eliminate ghost effects. Default = 50.
+##
+## @ rife        - Uses RIFE to double the framerate of the frame blending clip used to mask artifacts, reducing the need for frame blending.
+##                 0 disables RIFE and uses only frame blending. 1 runs RIFE once but you will still notice frame blending. 2 runs RIFE twice for better quality.
 ##                 
 ##
 ## Presets
@@ -95,7 +98,7 @@ import vapoursynth as vs
 core = vs.get_core()
 
 def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSize = None, blkSizeV = None, frameDouble = None, output = "auto", debug = False, \
-    prefilter = None, maskThr = 95, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife=False):
+    prefilter = None, maskThr = 95, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife = 0):
     if not isinstance(C, vs.VideoNode):
         raise vs.Error('FrameRateConverter: This is not a clip')
 
@@ -147,12 +150,15 @@ def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSi
         raise vs.Error("FrameRateConverter: You can only use output='Diff' when using preset=slower or slowest")
 
     ## "B" - Blending, "BHard" - No blending
-    if rife:
-        B = C.resize.Bicubic(format=vs.RGBS) \
-            .rife.RIFE(uhd=False) \
-            .resize.Bicubic(format=vs.YUV420P8, matrix_s="709")
-    else:
-        B = C.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
+    B = C
+    if rife > 0:
+        B = B.resize.Bicubic(format=vs.RGBS, matrix_in_s="709")
+        i = 0
+        while (i < rife):
+            i += 1
+            B = B.rife.RIFE(uhd=C.height>1300)
+        B = B.resize.Bicubic(format=C.format, matrix_s="709")
+    B = B.frc.ConvertFpsLimit(newNum, newDen, ratio=blendRatio)
     BHard = havs.ChangeFPS(C, newNum, newDen)
     Blank = core.std.BlankClip(C.resize.Point(format=vs.GRAY8))
 

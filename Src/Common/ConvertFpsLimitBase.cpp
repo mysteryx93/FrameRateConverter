@@ -13,12 +13,12 @@ ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, ICommonEnvironmen
 
 	fa = int64_t(source->FpsNum()) * new_denominator;
 	fb = int64_t(source->FpsDen()) * new_numerator;
-	if (3 * fb < (fa << 1))
-	{
-		int dec = MulDiv(source->FpsNum(), 20000, source->FpsDen());
-		env.ThrowError("New frame rate too small. Must be greater than %d.%04d ", dec / 30000, (dec / 3) % 10000);
-		return;
-	}
+	//if (3 * fb < (fa << 1))
+	//{
+	//	int dec = MulDiv(source->FpsNum(), 20000, source->FpsDen());
+	//	env.ThrowError("New frame rate too small. Must be greater than %d.%04d ", dec / 30000, (dec / 3) % 10000);
+	//	return;
+	//}
 }
 
 ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, ICommonFrame& src, ICommonFrame& srcNext, ICommonEnvironment& env)

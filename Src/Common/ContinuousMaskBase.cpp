@@ -2,8 +2,8 @@
 
 const char* ContinuousMaskBase::PluginName = "ContinuousMask";
 
-ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius, int _thr) :
-	source(_child), radius(_radius), thr(_thr), bitsPerSample(_child->BitsPerSample()), env(_env)
+ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _radius, int _thr) :
+	source(_child), radius(_radius), thr(_thr), bitsPerSample(_child->BitsPerSample())
 {
 	if (radius <= 1)
 	{

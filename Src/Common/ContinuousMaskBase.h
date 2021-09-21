@@ -10,7 +10,7 @@ public:
 	static const char* PluginName;
 
 private:
-	ICommonEnvironment& env;
+	// ICommonEnvironment& env;
 	const int radius;
 	const int thr;
 	const int bitsPerSample;

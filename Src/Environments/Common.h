@@ -84,7 +84,7 @@ struct ICommonEnvironment
 		const int MaxSize = 512;
 		const size_t NameLength = strlen(PluginName);
 		char Buffer[MaxSize]{ 0 };
-		strcpy_s(Buffer, PluginName);
+		strcpy(Buffer, PluginName);
 		Buffer[NameLength] = ':';
 		Buffer[NameLength + 1] = ' ';
 

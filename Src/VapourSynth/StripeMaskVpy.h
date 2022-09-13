@@ -8,7 +8,7 @@ public:
 	StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,
 		int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines);
 	~StripeMaskVpy() {}
-	virtual void VpyFilter::Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env);
-	virtual VSFrameRef* VpyFilter::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env);
-	virtual void VpyFilter::Free();
+	virtual void Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env);
+	virtual VSFrameRef* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env);
+	virtual void Free();
 };

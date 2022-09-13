@@ -178,7 +178,7 @@ void StripeMaskBase::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, 
 					}
 					if (PatternLength > 0)
 					{
-						PatternStart = history[max(0, hLength - PatternLength * 2 - 2)].Pos;
+						PatternStart = history[std::max(0, hLength - PatternLength * 2 - 2)].Pos;
 					}
 				}
 				else if (PatternLength > 0)
@@ -224,8 +224,8 @@ int StripeMaskBase::GetDiff(BYTE* lineAvg, int n, int size, int compBck, int com
 		BYTE ValMax = ValMin;
 		for (int i = -compBck + 1; i <= compFwd; i++)
 		{
-			ValMin = min(ValMin, lineAvg[n + i]);
-			ValMax = max(ValMax, lineAvg[n + i]);
+			ValMin = std::min(ValMin, lineAvg[n + i]);
+			ValMax = std::max(ValMax, lineAvg[n + i]);
 		}
 		return ValMax - ValMin;
 	}

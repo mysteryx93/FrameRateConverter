@@ -325,27 +325,27 @@ void ConvertFPSLimitBase::FloatToFPS(float n, uint32_t& num, uint32_t& den, ICom
 
 void ConvertFPSLimitBase::PresetToFPS(const char* p, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
 {
-	if (lstrcmpi(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_double") == 0) { num = 60000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_quad") == 0) { num = 120000; den = 1001; }
+	if (strcasecmp(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
+	else if (strcasecmp(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
+	else if (strcasecmp(p, "ntsc_double") == 0) { num = 60000; den = 1001; }
+	else if (strcasecmp(p, "ntsc_quad") == 0) { num = 120000; den = 1001; }
 
-	else if (lstrcmpi(p, "ntsc_round_film") == 0) { num = 2997; den = 125; }
-	else if (lstrcmpi(p, "ntsc_round_video") == 0) { num = 2997; den = 100; }
-	else if (lstrcmpi(p, "ntsc_round_double") == 0) { num = 2997; den = 50; }
-	else if (lstrcmpi(p, "ntsc_round_quad") == 0) { num = 2997; den = 25; }
+	else if (strcasecmp(p, "ntsc_round_film") == 0) { num = 2997; den = 125; }
+	else if (strcasecmp(p, "ntsc_round_video") == 0) { num = 2997; den = 100; }
+	else if (strcasecmp(p, "ntsc_round_double") == 0) { num = 2997; den = 50; }
+	else if (strcasecmp(p, "ntsc_round_quad") == 0) { num = 2997; den = 25; }
 
-	else if (lstrcmpi(p, "film") == 0) { num = 24; den = 1; }
+	else if (strcasecmp(p, "film") == 0) { num = 24; den = 1; }
 
-	else if (lstrcmpi(p, "pal_film") == 0) { num = 25; den = 1; }
-	else if (lstrcmpi(p, "pal_video") == 0) { num = 25; den = 1; }
-	else if (lstrcmpi(p, "pal_double") == 0) { num = 50; den = 1; }
-	else if (lstrcmpi(p, "pal_quad") == 0) { num = 100; den = 1; }
+	else if (strcasecmp(p, "pal_film") == 0) { num = 25; den = 1; }
+	else if (strcasecmp(p, "pal_video") == 0) { num = 25; den = 1; }
+	else if (strcasecmp(p, "pal_double") == 0) { num = 50; den = 1; }
+	else if (strcasecmp(p, "pal_quad") == 0) { num = 100; den = 1; }
 
-	else if (lstrcmpi(p, "drop24") == 0) { num = 24000; den = 1001; }
-	else if (lstrcmpi(p, "drop30") == 0) { num = 30000; den = 1001; }
-	else if (lstrcmpi(p, "drop60") == 0) { num = 60000; den = 1001; }
-	else if (lstrcmpi(p, "drop120") == 0) { num = 120000; den = 1001; }
+	else if (strcasecmp(p, "drop24") == 0) { num = 24000; den = 1001; }
+	else if (strcasecmp(p, "drop30") == 0) { num = 30000; den = 1001; }
+	else if (strcasecmp(p, "drop60") == 0) { num = 60000; den = 1001; }
+	else if (strcasecmp(p, "drop120") == 0) { num = 120000; den = 1001; }
 	/*
 		else if (lstrcmpi(p, "drop25"           ) == 0) { num = 25000; den = 1001; }
 		else if (lstrcmpi(p, "drop50"           ) == 0) { num = 50000; den = 1001; }

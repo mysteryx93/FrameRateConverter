@@ -1,7 +1,8 @@
 #include "../Environments/Common.h"
 #include <math.h>
 #include <cstring>
-#include <Windows.h>
+// #include <Windows.h>
+#include <algorithm>
 
 struct PatternStep {
 	PatternStep() {};

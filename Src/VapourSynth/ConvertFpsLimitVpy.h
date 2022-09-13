@@ -16,9 +16,9 @@ public:
 
 	ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* vsapi, int new_numerator, int new_denominator, int _ratio);
 	~ConvertFpsLimitVpy() {}
-	void VpyFilter::Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env);
-	VSFrameRef* VpyFilter::GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env);
-	void VpyFilter::Free();
+	void Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env) override;
+	VSFrameRef* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env) override;
+	void Free() override;
 };
 
 unsigned int gcd(unsigned int u, unsigned int v);

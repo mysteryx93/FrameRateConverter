@@ -62,10 +62,10 @@ template<typename T, typename P> void ContinuousMaskBase::Calculate(int width, i
 			if (srcIter[x] > thr)
 			{
 				Sum = 0;
-				radFwd = min(radius, width - x);
-				radBck = min(min(radius, x + 1), width) - 1;
-				radFwdV = min(radius, height - y);
-				radBckV = min(min(radius, y + 1), height) - 1;
+				radFwd = std::min(radius, width - x);
+				radBck = std::min(std::min(radius, x + 1), width) - 1;
+				radFwdV = std::min(radius, height - y);
+				radBckV = std::min(std::min(radius, y + 1), height) - 1;
 				for (int i = -radBck; i < radFwd; i++)
 				{
 					Sum += (T)srcIter[x + i];

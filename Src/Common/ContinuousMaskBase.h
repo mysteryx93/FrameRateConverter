@@ -2,7 +2,8 @@
 #include "../Environments/Common.h"
 #include <cstring>
 #include <cstdint>
-#include <Windows.h>
+// #include <Windows.h>
+#include <algorithm>
 
 class ContinuousMaskBase
 {

@@ -173,3 +173,17 @@ Do not include parenthesis.
 
 Functions comparing two clips will compare testclip with source1. Some functions have threshold and offset parameters. 
 These parameters are not currently supported and are left at 0. If you need them, feel free to edit the code to parse parameter values.
+
+## Building
+
+Requirements:
+* meson
+* ninja
+* vapoursynth
+
+### Quick Start
+
+```
+meson build
+ninja -C build
+```

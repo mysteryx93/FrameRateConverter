@@ -3,7 +3,10 @@
 #include "merge.h"
 #include <stdint.h>
 #include <cmath>
-#include <Windows.h>
+// #include <Windows.h>
+
+// Provide macro that's otherwise provided by Windows for multiplying two 32 bit floats into a single 64 bit.
+#define UInt32x32To64( a, b ) (unsigned long long)((unsigned long long)(a) * (b))
 
 // Class to change the framerate, attempting to smooth the transitions
 class ConvertFPSLimitBase

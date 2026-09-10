@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 2.0 (2021-09-18) beta 9
+# Version: 2.1 (2026-09-10)
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and

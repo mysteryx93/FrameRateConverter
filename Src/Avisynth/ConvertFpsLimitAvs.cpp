@@ -17,7 +17,7 @@ PVideoFrame __stdcall ConvertFpsLimitAvs::GetFrame(int n, IScriptEnvironment* en
 	PVideoFrame src = child->GetFrame(nsrc, env);
 	PVideoFrame src2 = child->GetFrame(nsrc + 1, env);
 	env->MakeWritable(&src);
-	ICommonFrame& Result = ProcessFrame(n, AvsFrame(src, vi), AvsFrame(src2, vi), AvsEnvironment(PluginName, env));
+	const ICommonFrame& Result = ProcessFrame(n, AvsFrame(src, vi), AvsFrame(src2, vi), AvsEnvironment(PluginName, env));
 	return *(PVideoFrame*)Result.Ref;
 }
 

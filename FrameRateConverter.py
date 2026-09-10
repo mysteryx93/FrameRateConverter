@@ -1,5 +1,5 @@
 # Frame Rate Converter
-# Version: 2.0 (2021-09-18) beta 9
+# Version: 2.1 (2026-09-10)
 # By Etienne Charland
 # Based on Oleg Yushko's YFRC artifact masking,
 # johnmeyer's frame interpolation code, and
@@ -97,7 +97,7 @@ import functools
 import math
 import havsfunc as havs
 import vapoursynth as vs
-core = vs.get_core()
+core = vs.core
 
 def FrameRateConverter(C, newNum = None, newDen = None, preset = "normal", blkSize = None, blkSizeV = None, frameDouble = None, output = "auto", debug = False, \
     prefilter = None, maskThr = None, maskOcc = None, skipThr = 45, blendOver = None, skipOver = None, stp = 35, dct = None, dctRe = None, blendRatio = 50, rife = None, rifeModel = None, rifeTta = False, rifeGpu = 0):

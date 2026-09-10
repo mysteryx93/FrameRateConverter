@@ -1,8 +1,23 @@
 #include "ConvertFpsLimitBase.h"
+#ifndef UInt32x32To64
+#define UInt32x32To64(a, b) ((uint64_t)((uint32_t)(a)) * (uint64_t)((uint32_t)(b)))
+#endif
+
+static int icmp(const char* a, const char* b)
+{
+	unsigned char ca, cb;
+	do {
+		ca = static_cast<unsigned char>(*a++);
+		cb = static_cast<unsigned char>(*b++);
+		if (ca >= 'A' && ca <= 'Z') ca = static_cast<unsigned char>(ca + ('a' - 'A'));
+		if (cb >= 'A' && cb <= 'Z') cb = static_cast<unsigned char>(cb + ('a' - 'A'));
+	} while (ca && ca == cb);
+	return (int)ca - (int)cb;
+}
 
 const char* ConvertFPSLimitBase::PluginName = "ConvertFpsLimit";
 
-ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, ICommonEnvironment& env, int new_numerator, int new_denominator, int _ratio)
+ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, const ICommonEnvironment& env, int new_numerator, int new_denominator, int _ratio)
 	: source(_child), ratio(_ratio), fa(0), fb(0)
 {
 	if (_ratio < 0 || _ratio > 100)
@@ -21,7 +36,7 @@ ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, ICommonEnvironmen
 	//}
 }
 
-ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, ICommonFrame& src, ICommonFrame& srcNext, ICommonEnvironment& env)
+const ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, const ICommonFrame& src, const ICommonFrame& srcNext, const ICommonEnvironment& env)
 {
 	static const int resolution = 10; //bits. Must be >= 4, or modify next line
 	static const int threshold = (1 << (resolution - 4)) * ratio / 100;
@@ -283,7 +298,7 @@ void ConvertFPSLimitBase::reduce_frac(uint32_t& num, uint32_t& den, uint32_t lim
  *******   Float to FPS utility   ******
  ***************************************/
 
-void ConvertFPSLimitBase::FloatToFPS(float n, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
+void ConvertFPSLimitBase::FloatToFPS(float n, uint32_t& num, uint32_t& den, const ICommonEnvironment& env)
 {
 	if (n <= 0)
 		env.ThrowError("FPS must be greater then 0.");
@@ -323,56 +338,56 @@ void ConvertFPSLimitBase::FloatToFPS(float n, uint32_t& num, uint32_t& den, ICom
  *******   Preset to FPS utility   ****** -- Tritcal, IanB Jan 2006
  ****************************************/
 
-void ConvertFPSLimitBase::PresetToFPS(const char* p, uint32_t& num, uint32_t& den, ICommonEnvironment& env)
+void ConvertFPSLimitBase::PresetToFPS(const char* p, uint32_t& num, uint32_t& den, const ICommonEnvironment& env)
 {
-	if (lstrcmpi(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_double") == 0) { num = 60000; den = 1001; }
-	else if (lstrcmpi(p, "ntsc_quad") == 0) { num = 120000; den = 1001; }
+	if (icmp(p, "ntsc_film") == 0) { num = 24000; den = 1001; }
+	else if (icmp(p, "ntsc_video") == 0) { num = 30000; den = 1001; }
+	else if (icmp(p, "ntsc_double") == 0) { num = 60000; den = 1001; }
+	else if (icmp(p, "ntsc_quad") == 0) { num = 120000; den = 1001; }
 
-	else if (lstrcmpi(p, "ntsc_round_film") == 0) { num = 2997; den = 125; }
-	else if (lstrcmpi(p, "ntsc_round_video") == 0) { num = 2997; den = 100; }
-	else if (lstrcmpi(p, "ntsc_round_double") == 0) { num = 2997; den = 50; }
-	else if (lstrcmpi(p, "ntsc_round_quad") == 0) { num = 2997; den = 25; }
+	else if (icmp(p, "ntsc_round_film") == 0) { num = 2997; den = 125; }
+	else if (icmp(p, "ntsc_round_video") == 0) { num = 2997; den = 100; }
+	else if (icmp(p, "ntsc_round_double") == 0) { num = 2997; den = 50; }
+	else if (icmp(p, "ntsc_round_quad") == 0) { num = 2997; den = 25; }
 
-	else if (lstrcmpi(p, "film") == 0) { num = 24; den = 1; }
+	else if (icmp(p, "film") == 0) { num = 24; den = 1; }
 
-	else if (lstrcmpi(p, "pal_film") == 0) { num = 25; den = 1; }
-	else if (lstrcmpi(p, "pal_video") == 0) { num = 25; den = 1; }
-	else if (lstrcmpi(p, "pal_double") == 0) { num = 50; den = 1; }
-	else if (lstrcmpi(p, "pal_quad") == 0) { num = 100; den = 1; }
+	else if (icmp(p, "pal_film") == 0) { num = 25; den = 1; }
+	else if (icmp(p, "pal_video") == 0) { num = 25; den = 1; }
+	else if (icmp(p, "pal_double") == 0) { num = 50; den = 1; }
+	else if (icmp(p, "pal_quad") == 0) { num = 100; den = 1; }
 
-	else if (lstrcmpi(p, "drop24") == 0) { num = 24000; den = 1001; }
-	else if (lstrcmpi(p, "drop30") == 0) { num = 30000; den = 1001; }
-	else if (lstrcmpi(p, "drop60") == 0) { num = 60000; den = 1001; }
-	else if (lstrcmpi(p, "drop120") == 0) { num = 120000; den = 1001; }
+	else if (icmp(p, "drop24") == 0) { num = 24000; den = 1001; }
+	else if (icmp(p, "drop30") == 0) { num = 30000; den = 1001; }
+	else if (icmp(p, "drop60") == 0) { num = 60000; den = 1001; }
+	else if (icmp(p, "drop120") == 0) { num = 120000; den = 1001; }
 	/*
-		else if (lstrcmpi(p, "drop25"           ) == 0) { num = 25000; den = 1001; }
-		else if (lstrcmpi(p, "drop50"           ) == 0) { num = 50000; den = 1001; }
-		else if (lstrcmpi(p, "drop100"          ) == 0) { num =100000; den = 1001; }
+		else if (icmp(p, "drop25"           ) == 0) { num = 25000; den = 1001; }
+		else if (icmp(p, "drop50"           ) == 0) { num = 50000; den = 1001; }
+		else if (icmp(p, "drop100"          ) == 0) { num =100000; den = 1001; }
 
-		else if (lstrcmpi(p, "nondrop24"        ) == 0) { num =    24; den =    1; }
-		else if (lstrcmpi(p, "nondrop25"        ) == 0) { num =    25; den =    1; }
-		else if (lstrcmpi(p, "nondrop30"        ) == 0) { num =    30; den =    1; }
-		else if (lstrcmpi(p, "nondrop50"        ) == 0) { num =    50; den =    1; }
-		else if (lstrcmpi(p, "nondrop60"        ) == 0) { num =    60; den =    1; }
-		else if (lstrcmpi(p, "nondrop100"       ) == 0) { num =   100; den =    1; }
-		else if (lstrcmpi(p, "nondrop120"       ) == 0) { num =   120; den =    1; }
+		else if (icmp(p, "nondrop24"        ) == 0) { num =    24; den =    1; }
+		else if (icmp(p, "nondrop25"        ) == 0) { num =    25; den =    1; }
+		else if (icmp(p, "nondrop30"        ) == 0) { num =    30; den =    1; }
+		else if (icmp(p, "nondrop50"        ) == 0) { num =    50; den =    1; }
+		else if (icmp(p, "nondrop60"        ) == 0) { num =    60; den =    1; }
+		else if (icmp(p, "nondrop100"       ) == 0) { num =   100; den =    1; }
+		else if (icmp(p, "nondrop120"       ) == 0) { num =   120; den =    1; }
 
-		else if (lstrcmpi(p, "23.976"           ) == 0) { num = 24000; den = 1001; }
-		else if (lstrcmpi(p, "23.976!"          ) == 0) { num =  2997; den =  125; }
-		else if (lstrcmpi(p, "24.0"             ) == 0) { num =    24; den =    1; }
-		else if (lstrcmpi(p, "25.0"             ) == 0) { num =    25; den =    1; }
-		else if (lstrcmpi(p, "29.97"            ) == 0) { num = 30000; den = 1001; }
-		else if (lstrcmpi(p, "29.97!"           ) == 0) { num =  2997; den =  100; }
-		else if (lstrcmpi(p, "30.0"             ) == 0) { num =    30; den =    1; }
-		else if (lstrcmpi(p, "59.94"            ) == 0) { num = 60000; den = 1001; }
-		else if (lstrcmpi(p, "59.94!"           ) == 0) { num =  2997; den =   50; }
-		else if (lstrcmpi(p, "60.0"             ) == 0) { num =    60; den =    1; }
-		else if (lstrcmpi(p, "100.0"            ) == 0) { num =   100; den =    1; }
-		else if (lstrcmpi(p, "119.88"           ) == 0) { num =120000; den = 1001; }
-		else if (lstrcmpi(p, "119.88!"          ) == 0) { num =  2997; den =   25; }
-		else if (lstrcmpi(p, "120.0"            ) == 0) { num =   120; den =    1; }
+		else if (icmp(p, "23.976"           ) == 0) { num = 24000; den = 1001; }
+		else if (icmp(p, "23.976!"          ) == 0) { num =  2997; den =  125; }
+		else if (icmp(p, "24.0"             ) == 0) { num =    24; den =    1; }
+		else if (icmp(p, "25.0"             ) == 0) { num =    25; den =    1; }
+		else if (icmp(p, "29.97"            ) == 0) { num = 30000; den = 1001; }
+		else if (icmp(p, "29.97!"           ) == 0) { num =  2997; den =  100; }
+		else if (icmp(p, "30.0"             ) == 0) { num =    30; den =    1; }
+		else if (icmp(p, "59.94"            ) == 0) { num = 60000; den = 1001; }
+		else if (icmp(p, "59.94!"           ) == 0) { num =  2997; den =   50; }
+		else if (icmp(p, "60.0"             ) == 0) { num =    60; den =    1; }
+		else if (icmp(p, "100.0"            ) == 0) { num =   100; den =    1; }
+		else if (icmp(p, "119.88"           ) == 0) { num =120000; den = 1001; }
+		else if (icmp(p, "119.88!"          ) == 0) { num =  2997; den =   25; }
+		else if (icmp(p, "120.0"            ) == 0) { num =   120; den =    1; }
 	*/
 	else {
 		env.ThrowError("Invalid preset value used.");

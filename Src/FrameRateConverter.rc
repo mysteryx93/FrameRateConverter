@@ -1,0 +1,35 @@
+#include <windows.h>
+#include "Common/FrcVersion.h"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION FRC_VERSION_MAJOR,FRC_VERSION_MINOR,0,0
+PRODUCTVERSION FRC_VERSION_MAJOR,FRC_VERSION_MINOR,0,0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+FILEFLAGS VS_FF_DEBUG
+#else
+FILEFLAGS 0x0L
+#endif
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE VFT_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "MysteryX"
+            VALUE "FileDescription", "FrameRateConverter AviSynth/VapourSynth plugin"
+            VALUE "FileVersion", FRC_VERSION_STRING
+            VALUE "InternalName", "FrameRateConverter"
+            VALUE "LegalCopyright", "Copyright (C) 2017-2026 Etienne Charland"
+            VALUE "OriginalFilename", "FrameRateConverter.dll"
+            VALUE "ProductName", "FrameRateConverter"
+            VALUE "ProductVersion", FRC_VERSION_STRING
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

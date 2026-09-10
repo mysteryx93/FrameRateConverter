@@ -1,7 +1,6 @@
 #include "../Environments/Common.h"
 #include <math.h>
 #include <cstring>
-#include <Windows.h>
 
 struct PatternStep {
 	PatternStep() {};
@@ -20,9 +19,9 @@ public:
 	static const char* PluginName;
 
 protected:
-	StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines);
+	StripeMaskBase(ICommonVideo* _child, const ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines);
 	~StripeMaskBase();
-	void ProcessFrame(ICommonFrame& src, ICommonFrame& dst, ICommonEnvironment& env);
+	void ProcessFrame(const ICommonFrame& src, const ICommonFrame& dst, const ICommonEnvironment& env);
 
 private:
 	void CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical);

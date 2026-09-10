@@ -2,7 +2,6 @@
 #include "../Environments/Common.h"
 #include <cstring>
 #include <cstdint>
-#include <Windows.h>
 
 class ContinuousMaskBase
 {
@@ -16,9 +15,9 @@ private:
 	const int bitsPerSample;
 
 protected:
-	ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& _env, int _radius, int _thr);
+	ContinuousMaskBase(ICommonVideo* _child, const ICommonEnvironment& _env, int _radius, int _thr);
 	~ContinuousMaskBase() {}
-	void ProcessFrame(ICommonFrame& src, ICommonFrame& dst);
+	void ProcessFrame(const ICommonFrame& src, const ICommonFrame& dst);
 	ICommonVideo* source;
 
 	// T: data type to calculate total (must hold P.MaxValue * radius * 4)

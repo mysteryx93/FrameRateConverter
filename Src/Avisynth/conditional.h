@@ -34,10 +34,8 @@
 // import and export plugins, or graphical user interfaces.
 
 
-#include "avisynth.h"
+#include <avisynth.h>
 #include <cmath>
-#include "avs/win.h"
-#include "avs/minmax.h"
 #include "conditional_functions.h"
 #include <stdio.h>
 
@@ -57,7 +55,7 @@ public:
 	static AVSValue __cdecl Create(AVSValue args, void* user_data, IScriptEnvironment* env);
 	ConditionalFilter(PClip _child, PClip _source1, PClip _source2, AVSValue  _condition1, AVSValue  _evaluator, AVSValue  _condition2, bool _show, IScriptEnvironment* env);
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
-	void __stdcall GetAudio(void* buf, __int64 start, __int64 count, IScriptEnvironment* env);
+	void __stdcall GetAudio(void* buf, int64_t start, int64_t count, IScriptEnvironment* env);
 	int __stdcall SetCacheHints(int cachehints, int frame_range);
 private:
 	PClip source1;

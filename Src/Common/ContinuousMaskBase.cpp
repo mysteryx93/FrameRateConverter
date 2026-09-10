@@ -1,8 +1,9 @@
 #include "ContinuousMaskBase.h"
+#include <algorithm>
 
 const char* ContinuousMaskBase::PluginName = "ContinuousMask";
 
-ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _radius, int _thr) :
+ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, const ICommonEnvironment& env, int _radius, int _thr) :
 	source(_child), radius(_radius), thr(_thr), bitsPerSample(_child->BitsPerSample())
 {
 	if (radius <= 1)
@@ -15,7 +16,7 @@ ContinuousMaskBase::ContinuousMaskBase(ICommonVideo* _child, ICommonEnvironment&
 	}
 }
 
-void ContinuousMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& dst)
+void ContinuousMaskBase::ProcessFrame(const ICommonFrame& src, const ICommonFrame& dst)
 {
 	for (int i = 0; i < source->NumPlanes(); i++)
 	{
@@ -62,10 +63,10 @@ template<typename T, typename P> void ContinuousMaskBase::Calculate(int width, i
 			if (srcIter[x] > thr)
 			{
 				Sum = 0;
-				radFwd = min(radius, width - x);
-				radBck = min(min(radius, x + 1), width) - 1;
-				radFwdV = min(radius, height - y);
-				radBckV = min(min(radius, y + 1), height) - 1;
+				radFwd = std::min(radius, width - x);
+				radBck = std::min(std::min(radius, x + 1), width) - 1;
+				radFwdV = std::min(radius, height - y);
+				radBckV = std::min(std::min(radius, y + 1), height) - 1;
 				for (int i = -radBck; i < radFwd; i++)
 				{
 					Sum += (T)srcIter[x + i];

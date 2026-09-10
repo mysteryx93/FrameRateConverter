@@ -2,6 +2,8 @@ ipch/
 Debug/
 Release/
 .vs/
+.idea/
+build/
 
 *.db
 *.opendb
@@ -36,3 +38,5 @@ Release/
 *.exe
 *.out
 *.app
+
+Tests/

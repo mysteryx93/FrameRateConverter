@@ -1,10 +1,16 @@
-#include "avisynth.h"
-#include "conditional.h"
+#include <avisynth.h>
 #include "StripeMaskAvs.h"
+#include "conditional.h"
 #include "ContinuousMaskAvs.h"
 #include "ConvertFpsLimitAvs.h"
+#include "../Common/FrcVersion.h"
 
 const AVS_Linkage *AVS_linkage = 0;
+
+static AVSValue __cdecl CreateFrcVersion(AVSValue, void*, IScriptEnvironment*)
+{
+	return FRC_VERSION_STRING;
+}
 
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment* env, const AVS_Linkage* const vectors)
 {
@@ -16,5 +22,6 @@ extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScri
 	env->AddFunction("ConvertFpsLimit", "cf[ratio]i", ConvertFpsLimitAvs::CreateFloat, 0);
 	env->AddFunction("ConvertFpsLimit", "cs[ratio]i", ConvertFpsLimitAvs::CreatePreset, 0);
 	env->AddFunction("ConvertFpsLimit", "cc[ratio]i", ConvertFpsLimitAvs::CreateFromClip, 0);
-	return "FrameRateConverter";
+	env->AddFunction("FrcVersion", "", CreateFrcVersion, 0);
+	return "FrameRateConverter " FRC_VERSION_STRING;
 }

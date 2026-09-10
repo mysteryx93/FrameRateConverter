@@ -63,6 +63,9 @@
     <ClInclude Include="Common\StripeMaskBase.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Common\FrcVersion.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="Avisynth\ConvertFpsLimitAvs.h">
       <Filter>Avisynth</Filter>
     </ClInclude>
@@ -167,5 +170,10 @@
     <ClCompile Include="VapourSynth\ConvertFpsLimitVpy.cpp">
       <Filter>VapourSynth</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FrameRateConverter.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

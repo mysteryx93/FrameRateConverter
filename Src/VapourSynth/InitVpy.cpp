@@ -1,12 +1,19 @@
 #include "VapourSynth.h"
 #include "VSHelper.h"
-#include "ContinuousMaskVpy.h"
 #include "StripeMaskVpy.h"
+#include "ContinuousMaskVpy.h"
 #include "ConvertFpsLimitVpy.h"
+#include "../Common/FrcVersion.h"
+
+static void VS_CC FrcVersionCreate(const VSMap *, VSMap *out, void *, VSCore *, const VSAPI *vsapi)
+{
+	vsapi->propSetData(out, "version", FRC_VERSION_STRING, -1, paReplace);
+}
 
 VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegisterFunction registerFunc, VSPlugin *plugin)
 {
-	configFunc("com.vapoursynth.frc", "frc", "Frame Rate Connverter", VAPOURSYNTH_API_VERSION, 1, plugin);
+	configFunc("com.vapoursynth.frc", "frc", "Frame Rate Converter " FRC_VERSION_STRING, VAPOURSYNTH_API_VERSION, 1, plugin);
+	registerFunc("Version", "", FrcVersionCreate, 0, plugin);
 	registerFunc("ContinuousMask",
 		"clip:clip;"
 		"radius:int:opt;"

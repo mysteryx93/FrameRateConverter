@@ -1,8 +1,9 @@
 #include "StripeMaskBase.h"
+#include <algorithm>
 
 const char* StripeMaskBase::PluginName = "StripeMaskPass";
 
-StripeMaskBase::StripeMaskBase(ICommonVideo* _child, ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines) :
+StripeMaskBase::StripeMaskBase(ICommonVideo* _child, const ICommonEnvironment& env, int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines) :
 	source(_child), blksize(_blksize), blksizev(_blksizev), overlap(_overlap), overlapv(_overlapv), thr(_thr), comp(_comp), compv(_compv), str(_str), lines(_lines)
 {
 	if (!_child->IsYUV() && !_child->IsY())
@@ -36,7 +37,7 @@ StripeMaskBase::~StripeMaskBase()
 	}
 }
 
-void StripeMaskBase::ProcessFrame(ICommonFrame& src, ICommonFrame& dst, ICommonEnvironment& env)
+void StripeMaskBase::ProcessFrame(const ICommonFrame& src, const ICommonFrame& dst, const ICommonEnvironment& env)
 {
 	int width = source->Width();
 	int height = source->Height();
@@ -178,7 +179,7 @@ void StripeMaskBase::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, 
 					}
 					if (PatternLength > 0)
 					{
-						PatternStart = history[max(0, hLength - PatternLength * 2 - 2)].Pos;
+						PatternStart = history[std::max(0, hLength - PatternLength * 2 - 2)].Pos;
 					}
 				}
 				else if (PatternLength > 0)
@@ -224,8 +225,8 @@ int StripeMaskBase::GetDiff(BYTE* lineAvg, int n, int size, int compBck, int com
 		BYTE ValMax = ValMin;
 		for (int i = -compBck + 1; i <= compFwd; i++)
 		{
-			ValMin = min(ValMin, lineAvg[n + i]);
-			ValMax = max(ValMax, lineAvg[n + i]);
+			ValMin = std::min(ValMin, lineAvg[n + i]);
+			ValMax = std::max(ValMax, lineAvg[n + i]);
 		}
 		return ValMax - ValMin;
 	}

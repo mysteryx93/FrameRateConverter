@@ -1,5 +1,5 @@
 #pragma once
-#include "../Avisynth/avisynth.h"
+#include <avisynth.h>
 #include "Common.h"
 #include <string>
 
@@ -12,7 +12,7 @@ struct AvsEnvironment : public ICommonEnvironment {
 	{
 	}
 
-	void ThrowErrorInternal(const char* message)
+	void ThrowErrorInternal(const char* message) const
 	{
 		Env->ThrowError(message);
 	}
@@ -110,13 +110,13 @@ struct AvsFrame : public ICommonFrame
 	{
 	}
 
-	bool HasValue()
+	bool HasValue() const
 	{
 		return Frame;
 	}
 
 	// Convert plane index to Avisynth plane flag.
-	int GetPlane(int plane)
+	int GetPlane(int plane) const
 	{
 		if (VInfo.IsPlanar())
 		{
@@ -132,42 +132,42 @@ struct AvsFrame : public ICommonFrame
 		return plane == 0 ? 0 : throw std::string("Invalid plane index.");
 	}
 
-	int GetStride(int plane = 0)
+	int GetStride(int plane = 0) const
 	{
 		return Frame->GetPitch(GetPlane(plane));
 	}
 
-	int GetRowSize(int plane = 0)
+	int GetRowSize(int plane = 0) const
 	{
 		return Frame->GetRowSize(GetPlane(plane));
 	}
 
-	int GetWidth(int plane = 0)
+	int GetWidth(int plane = 0) const
 	{
 		return Frame->GetRowSize(GetPlane(plane)) / BytesPerSample();
 	}
 
-	int GetHeight(int plane = 0)
+	int GetHeight(int plane = 0) const
 	{
 		return Frame->GetHeight(GetPlane(plane));
 	}
 
-	int BitsPerSample()
+	int BitsPerSample() const
 	{
 		return VInfo.BitsPerComponent();
 	}
 
-	int BytesPerSample()
+	int BytesPerSample() const
 	{
 		return VInfo.BitsPerComponent();
 	}
 
-	BYTE* GetWritePtr(int plane = 0)
+	BYTE* GetWritePtr(int plane = 0) const
 	{
 		return Frame->GetWritePtr(GetPlane(plane));
 	}
 
-	const BYTE* GetReadPtr(int plane = 0)
+	const BYTE* GetReadPtr(int plane = 0) const
 	{
 		return Frame->GetReadPtr(GetPlane(plane));
 	}

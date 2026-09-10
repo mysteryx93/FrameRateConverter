@@ -34,6 +34,8 @@
 // import and export plugins, or graphical user interfaces.
 
 #include "conditional.h"
+#include <algorithm>
+#include <cstdio>
 
 #define W_DIVISOR 5  // Width divisor for onscreen messages
 
@@ -57,13 +59,13 @@ ConditionalFilter::ConditionalFilter(PClip _child, PClip _source1, PClip _source
 
 	evaluator = NONE;
 
-	if (lstrcmpi(_evaluator.AsString(), "equals") == 0 ||
-		lstrcmpi(_evaluator.AsString(), "=") == 0 ||
-		lstrcmpi(_evaluator.AsString(), "==") == 0)
+	if (_stricmp(_evaluator.AsString(), "equals") == 0 ||
+		_stricmp(_evaluator.AsString(), "=") == 0 ||
+		_stricmp(_evaluator.AsString(), "==") == 0)
 		evaluator = EQUALS;
-	if (lstrcmpi(_evaluator.AsString(), "greaterthan") == 0 || lstrcmpi(_evaluator.AsString(), ">") == 0)
+	if (_stricmp(_evaluator.AsString(), "greaterthan") == 0 || _stricmp(_evaluator.AsString(), ">") == 0)
 		evaluator = GREATERTHAN;
-	if (lstrcmpi(_evaluator.AsString(), "lessthan") == 0 || lstrcmpi(_evaluator.AsString(), "<") == 0)
+	if (_stricmp(_evaluator.AsString(), "lessthan") == 0 || _stricmp(_evaluator.AsString(), "<") == 0)
 		evaluator = LESSTHAN;
 
 	if (evaluator == NONE)
@@ -82,7 +84,7 @@ ConditionalFilter::ConditionalFilter(PClip _child, PClip _source1, PClip _source
 	vi.height = vi1.height;
 	vi.width = vi1.width;
 	vi.pixel_type = vi1.pixel_type;
-	vi.num_frames = max(vi1.num_frames, vi2.num_frames);
+	vi.num_frames = std::max(vi1.num_frames, vi2.num_frames);
 	vi.num_audio_samples = vi1.num_audio_samples;
 	vi.audio_samples_per_second = vi1.audio_samples_per_second;
 	vi.image_type = vi1.image_type;
@@ -202,7 +204,7 @@ PVideoFrame __stdcall ConditionalFilter::GetFrame(int n, IScriptEnvironment* env
 	if (show) {
 		char text[400];
 		if (test_string) {
-			_snprintf(text, sizeof(text) - 1,
+			snprintf(text, sizeof(text) - 1,
 				"Left side Conditional Result:%.40s\n"
 				"Right side Conditional Result:%.40s\n"
 				"Evaluate result: %s\n",
@@ -210,7 +212,7 @@ PVideoFrame __stdcall ConditionalFilter::GetFrame(int n, IScriptEnvironment* env
 			);
 		}
 		else if (test_int) {
-			_snprintf(text, sizeof(text) - 1,
+			snprintf(text, sizeof(text) - 1,
 				"Left side Conditional Result:%i\n"
 				"Right side Conditional Result:%i\n"
 				"Evaluate result: %s\n",
@@ -218,7 +220,7 @@ PVideoFrame __stdcall ConditionalFilter::GetFrame(int n, IScriptEnvironment* env
 			);
 		}
 		else {
-			_snprintf(text, sizeof(text) - 1,
+			snprintf(text, sizeof(text) - 1,
 				"Left side Conditional Result:%7.4f\n"
 				"Right side Conditional Result:%7.4f\n"
 				"Evaluate result: %s\n",
@@ -226,7 +228,7 @@ PVideoFrame __stdcall ConditionalFilter::GetFrame(int n, IScriptEnvironment* env
 			);
 		}
 
-		PVideoFrame dst = (state) ? source1->GetFrame(min(vi1.num_frames - 1, n), env) : source2->GetFrame(min(vi2.num_frames - 1, n), env);
+		PVideoFrame dst = (state) ? source1->GetFrame(std::min(vi1.num_frames - 1, n), env) : source2->GetFrame(std::min(vi2.num_frames - 1, n), env);
 		env->MakeWritable(&dst);
 		env->ApplyMessage(&dst, vi, text, vi.width / 4, 0xa0a0a0, 0, 0);
 
@@ -234,12 +236,12 @@ PVideoFrame __stdcall ConditionalFilter::GetFrame(int n, IScriptEnvironment* env
 	}
 
 	if (state)
-		return source1->GetFrame(min(vi1.num_frames - 1, n), env);
+		return source1->GetFrame(std::min(vi1.num_frames - 1, n), env);
 
-	return source2->GetFrame(min(vi1.num_frames - 1, n), env);
+	return source2->GetFrame(std::min(vi1.num_frames - 1, n), env);
 }
 
-void __stdcall ConditionalFilter::GetAudio(void* buf, __int64 start, __int64 count, IScriptEnvironment* env) {
+void __stdcall ConditionalFilter::GetAudio(void* buf, int64_t start, int64_t count, IScriptEnvironment* env) {
 	source1->GetAudio(buf, start, count, env);
 }
 

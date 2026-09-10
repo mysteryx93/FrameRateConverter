@@ -24,7 +24,7 @@ struct VpyEnvironment : public ICommonEnvironment
 	{
 	}
 
-	void ThrowErrorInternal(const char* message)
+	void ThrowErrorInternal(const char* message) const
 	{
 		if (Out)
 		{
@@ -145,7 +145,7 @@ struct VpyVideo : ICommonVideo
 struct VpyFrame : public ICommonFrame
 {
 	const VSAPI* Api;
-	VSFrameRef* Frame()
+	VSFrameRef* Frame() const
 	{
 		return (VSFrameRef*)Ref;
 	}
@@ -162,47 +162,47 @@ struct VpyFrame : public ICommonFrame
 	{
 	}
 
-	bool HasValue()
+	bool HasValue() const
 	{
 		return Ref;
 	}
 
-	int GetStride(int plane = 0)
+	int GetStride(int plane = 0) const
 	{
 		return Api->getStride(Frame(), plane);
 	}
 
-	int GetRowSize(int plane = 0)
+	int GetRowSize(int plane = 0) const
 	{
 		return GetWidth(plane) * BytesPerSample();
 	}
 
-	int GetWidth(int plane = 0)
+	int GetWidth(int plane = 0) const
 	{
 		return Api->getFrameWidth(Frame(), plane);
 	}
 
-	int GetHeight(int plane = 0)
+	int GetHeight(int plane = 0) const
 	{
 		return Api->getFrameHeight(Frame(), plane);
 	}
 
-	int BitsPerSample()
+	int BitsPerSample() const
 	{
 		return Api->getFrameFormat(Frame())->bitsPerSample;
 	}
 
-	int BytesPerSample()
+	int BytesPerSample() const
 	{
 		return Api->getFrameFormat(Frame())->bytesPerSample;
 	}
 
-	BYTE* GetWritePtr(int plane = 0)
+	BYTE* GetWritePtr(int plane = 0) const
 	{
 		return Api->getWritePtr(Frame(), plane);
 	}
 
-	const BYTE* GetReadPtr(int plane = 0)
+	const BYTE* GetReadPtr(int plane = 0) const
 	{
 		return Api->getReadPtr(Frame(), plane);
 	}

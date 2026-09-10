@@ -33,10 +33,9 @@
 // import and export plugins, or graphical user interfaces.
 
 
-#include "avisynth.h"
-#include "avs\config.h"
-#include "avs\minmax.h"
-#include "avs\alignment.h"
+#include <avisynth.h>
+#include <avs/minmax.h>
+#include <avs/alignment.h>
 #include <emmintrin.h>
 #include <string>
 

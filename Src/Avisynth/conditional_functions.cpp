@@ -44,59 +44,59 @@ AVSValue ConditionalFunction(const char* expr, AVSValue clip, AVSValue clip2, in
 	double d = strtod(expr, &pEnd);
 	if (!*pEnd)
 		return AVSValue(d);
-	else if (stricmp(expr, "AverageLuma") == 0)
+	else if (_stricmp(expr, "AverageLuma") == 0)
 		return AvgPlane(clip, NULL, PLANAR_Y, n, env);
-	else if (stricmp(expr, "AverageChromaU") == 0)
+	else if (_stricmp(expr, "AverageChromaU") == 0)
 		return AvgPlane(clip, NULL, PLANAR_U, n, env);
-	else if (stricmp(expr, "AverageChromaV") == 0)
+	else if (_stricmp(expr, "AverageChromaV") == 0)
 		return AvgPlane(clip, NULL, PLANAR_V, n, env);
-	else if (stricmp(expr, "RGBDifference") == 0)
+	else if (_stricmp(expr, "RGBDifference") == 0)
 		return CmpPlane(clip, clip2, n, -1, env);
-	else if (stricmp(expr, "LumaDifference") == 0)
+	else if (_stricmp(expr, "LumaDifference") == 0)
 		return CmpPlane(clip, clip2, n, PLANAR_Y, env);
-	else if (stricmp(expr, "ChromaUDifference") == 0)
+	else if (_stricmp(expr, "ChromaUDifference") == 0)
 		return CmpPlane(clip, clip2, n, PLANAR_U, env);
-	else if (stricmp(expr, "ChromaVDifference") == 0)
+	else if (_stricmp(expr, "ChromaVDifference") == 0)
 		return CmpPlane(clip, clip2, n, PLANAR_V, env);
-	else if (stricmp(expr, "YDifferenceFromPrevious") == 0)
+	else if (_stricmp(expr, "YDifferenceFromPrevious") == 0)
 		return CmpPlaneSame(clip, n, -1, PLANAR_Y, env);
-	else if (stricmp(expr, "UDifferenceFromPrevious") == 0)
+	else if (_stricmp(expr, "UDifferenceFromPrevious") == 0)
 		return CmpPlaneSame(clip, n, -1, PLANAR_U, env);
-	else if (stricmp(expr, "VDifferenceFromPrevious") == 0)
+	else if (_stricmp(expr, "VDifferenceFromPrevious") == 0)
 		return CmpPlaneSame(clip, n, -1, PLANAR_V, env);
-	else if (stricmp(expr, "RGBDifferenceFromPrevious") == 0)
+	else if (_stricmp(expr, "RGBDifferenceFromPrevious") == 0)
 		return CmpPlaneSame(clip, n, -1, -1, env);
-	else if (stricmp(expr, "YDifferenceToNext") == 0)
+	else if (_stricmp(expr, "YDifferenceToNext") == 0)
 		return CmpPlaneSame(clip, n, 1, PLANAR_Y, env);
-	else if (stricmp(expr, "UDifferenceToNext") == 0)
+	else if (_stricmp(expr, "UDifferenceToNext") == 0)
 		return CmpPlaneSame(clip, n, 1, PLANAR_U, env);
-	else if (stricmp(expr, "VDifferenceToNext") == 0)
+	else if (_stricmp(expr, "VDifferenceToNext") == 0)
 		return CmpPlaneSame(clip, n, 1, PLANAR_V, env);
-	else if (stricmp(expr, "RGBDifferenceToNext") == 0)
+	else if (_stricmp(expr, "RGBDifferenceToNext") == 0)
 		return CmpPlaneSame(clip, n, 1, -1, env);
-	else if (stricmp(expr, "YPlaneMax") == 0)
+	else if (_stricmp(expr, "YPlaneMax") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_Y, MAX, env);
-	else if (stricmp(expr, "YPlaneMin") == 0)
+	else if (_stricmp(expr, "YPlaneMin") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_Y, MIN, env);
-	else if (stricmp(expr, "YPlaneMedian") == 0)
+	else if (_stricmp(expr, "YPlaneMedian") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_Y, MIN, env);
-	else if (stricmp(expr, "UPlaneMax") == 0)
+	else if (_stricmp(expr, "UPlaneMax") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_U, MAX, env);
-	else if (stricmp(expr, "UPlaneMin") == 0)
+	else if (_stricmp(expr, "UPlaneMin") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_U, MIN, env);
-	else if (stricmp(expr, "UPlaneMedian") == 0)
+	else if (_stricmp(expr, "UPlaneMedian") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_U, MIN, env);
-	else if (stricmp(expr, "VPlaneMax") == 0)
+	else if (_stricmp(expr, "VPlaneMax") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_V, MAX, env);
-	else if (stricmp(expr, "VPlaneMin") == 0)
+	else if (_stricmp(expr, "VPlaneMin") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_V, MIN, env);
-	else if (stricmp(expr, "VPlaneMedian") == 0)
+	else if (_stricmp(expr, "VPlaneMedian") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_V, MIN, env);
-	else if (stricmp(expr, "YPlaneMinMaxDifference") == 0)
+	else if (_stricmp(expr, "YPlaneMinMaxDifference") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_Y, MINMAX_DIFFERENCE, env);
-	else if (stricmp(expr, "UPlaneMinMaxDifference") == 0)
+	else if (_stricmp(expr, "UPlaneMinMaxDifference") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_U, MINMAX_DIFFERENCE, env);
-	else if (stricmp(expr, "VPlaneMinMaxDifference") == 0)
+	else if (_stricmp(expr, "VPlaneMinMaxDifference") == 0)
 		return MinMax(clip, n, treshold, offset, PLANAR_V, MINMAX_DIFFERENCE, env);
 	else
 		env->ThrowError("ConditionalFilterMT: Expression could not be recognized!");

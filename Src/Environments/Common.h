@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable:26812)
+#endif
 
 typedef unsigned char   BYTE;
 
@@ -40,15 +42,15 @@ struct ICommonFrame
 	{
 	}
 	virtual ~ICommonFrame() {}
-	virtual bool HasValue() = 0;
-	virtual int GetStride(int plane = 0) = 0;
-	virtual int GetRowSize(int plane = 0) = 0;
-	virtual int GetWidth(int plane = 0) = 0;
-	virtual int GetHeight(int plane = 0) = 0;
-	virtual int BitsPerSample() = 0;
-	virtual int BytesPerSample() = 0;
-	virtual BYTE* GetWritePtr(int plane = 0) = 0;
-	virtual const BYTE* GetReadPtr(int plane = 0) = 0;
+	virtual bool HasValue() const = 0;
+	virtual int GetStride(int plane = 0) const = 0;
+	virtual int GetRowSize(int plane = 0) const = 0;
+	virtual int GetWidth(int plane = 0) const = 0;
+	virtual int GetHeight(int plane = 0) const = 0;
+	virtual int BitsPerSample() const = 0;
+	virtual int BytesPerSample() const = 0;
+	virtual BYTE* GetWritePtr(int plane = 0) const = 0;
+	virtual const BYTE* GetReadPtr(int plane = 0) const = 0;
 };
 
 struct ICommonEnvironment
@@ -78,13 +80,14 @@ struct ICommonEnvironment
 	//	ThrowErrorInternal(Buffer);
 	//}
 
-	bool ThrowError(const char* format, ...)
+	bool ThrowError(const char* format, ...) const
 	{
 		// Start the error message with plugin name.
 		const int MaxSize = 512;
 		const size_t NameLength = strlen(PluginName);
 		char Buffer[MaxSize]{ 0 };
-		strcpy_s(Buffer, PluginName);
+		strncpy(Buffer, PluginName, MaxSize - 1);
+		Buffer[MaxSize - 1] = '\0';
 		Buffer[NameLength] = ':';
 		Buffer[NameLength + 1] = ' ';
 
@@ -100,7 +103,7 @@ struct ICommonEnvironment
 
 	//virtual void MakeWritable(ICommonFrame& frame) = 0;
 
-	const int GetCpuSupport()
+	int GetCpuSupport() const
 	{
 		return instrset_detect();
 	}
@@ -118,5 +121,5 @@ struct ICommonEnvironment
 	//const int ISET_AVX512BW = 11; // AVX512BW, AVX512DQ
 
 protected:
-	virtual void ThrowErrorInternal(const char* message) = 0;
+	virtual void ThrowErrorInternal(const char* message) const = 0;
 };

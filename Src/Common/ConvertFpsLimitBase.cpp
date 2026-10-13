@@ -1,4 +1,5 @@
 #include "ConvertFpsLimitBase.h"
+#include <limits>
 #ifndef UInt32x32To64
 #define UInt32x32To64(a, b) ((uint64_t)((uint32_t)(a)) * (uint64_t)((uint32_t)(b)))
 #endif
@@ -17,39 +18,43 @@ static int icmp(const char* a, const char* b)
 
 const char* ConvertFPSLimitBase::PluginName = "ConvertFpsLimit";
 
-ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, const ICommonEnvironment& env, int new_numerator, int new_denominator, int _ratio)
-	: source(_child), ratio(_ratio), fa(0), fb(0)
+ConvertFPSLimitBase::ConvertFPSLimitBase(ICommonVideo* _child, const ICommonEnvironment& env, uint32_t new_numerator, uint32_t new_denominator, int _ratio)
+	: source(_child), fa(0), fb(0), ratio(_ratio)
 {
+	if (new_numerator <= 0 || new_denominator <= 0)
+	{
+		env.ThrowError("frame-rate numerator and denominator must be greater than 0");
+		return;
+	}
+	if (source->FpsNum() <= 0 || source->FpsDen() <= 0)
+	{
+		env.ThrowError("source clip must have a valid frame rate");
+		return;
+	}
 	if (_ratio < 0 || _ratio > 100)
 	{
 		env.ThrowError("ratio must be between 0 (frame copy) and 100 (full blend)");
 		return;
 	}
 
+	if (source->FpsNum() > std::numeric_limits<int64_t>::max() / new_denominator ||
+		source->FpsDen() > std::numeric_limits<int64_t>::max() / new_numerator)
+	{
+		env.ThrowError("frame-rate ratio is too large");
+		return;
+	}
 	fa = int64_t(source->FpsNum()) * new_denominator;
 	fb = int64_t(source->FpsDen()) * new_numerator;
-	//if (3 * fb < (fa << 1))
-	//{
-	//	int dec = MulDiv(source->FpsNum(), 20000, source->FpsDen());
-	//	env.ThrowError("New frame rate too small. Must be greater than %d.%04d ", dec / 30000, (dec / 3) % 10000);
-	//	return;
-	//}
 }
 
 const ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, const ICommonFrame& src, const ICommonFrame& srcNext, const ICommonEnvironment& env)
 {
 	static const int resolution = 10; //bits. Must be >= 4, or modify next line
-	static const int threshold = (1 << (resolution - 4)) * ratio / 100;
+	const int threshold = (1 << (resolution - 4)) * ratio / 100;
 	static const int one = 1 << resolution;
 	static const int half = 1 << (resolution - 1);
 
-	//double nsrc_f, frac_f;
-	//frac_f = modf((double)n * fa / fb, &nsrc_f);
-	// integer versions
-	int nsrc = int(n * fa / fb);
 	int frac = int((((n * fa) % fb) << resolution) / fb);
-
-	double frac_f_from_int = (double)frac / one;
 
 	// Mode 1: Blend full frames
 	int mix_ratio = frac;
@@ -68,18 +73,11 @@ const ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, const ICommonFrame&
 
 	float mix_ratio_f = (float)mix_ratio / one;
 
-	//const int planes_y[4] = { PLANAR_Y, PLANAR_U, PLANAR_V, PLANAR_A };
-	//const int planes_r[4] = { PLANAR_G, PLANAR_B, PLANAR_R, PLANAR_A };
-	const int planes[4] = { 0, 1, 2, 3 };
-
-	//int planeCount;
 	int planeCount = source->NumPlanes();
-	//planes = (!vinfo->IsPlanar() || vinfo->IsYUV()) ? planes_y : planes_r;
 
 	const int bits_per_pixel = source->BitsPerSample();
 	for (int plane = 0; plane < planeCount; ++plane)
 	{
-		// const int plane = planes[j];
 		const BYTE* b_data = srcNext.GetReadPtr(plane);
 		int          b_pitch = srcNext.GetStride(plane);
 		BYTE* a_data = src.GetWritePtr(plane);
@@ -89,7 +87,6 @@ const ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, const ICommonFrame&
 
 		int weight_i;
 		int invweight_i;
-		// float weight = (float)frac_f;
 		MergeFuncPtr weighted_merge_planar = getMergeFunc(bits_per_pixel, env.GetCpuSupport(), a_data, b_data, mix_ratio_f, /*out*/weight_i, /*out*/invweight_i);
 		weighted_merge_planar(a_data, b_data, a_pitch, b_pitch, row_size, height, mix_ratio_f, weight_i, invweight_i);
 	}
@@ -120,9 +117,9 @@ const ICommonFrame& ConvertFPSLimitBase::ProcessFrame(int n, const ICommonFrame&
  // i.e. 4294967040/1 -- 1/2147483648 (4.65661287307e-10)
  // returns true if input is out of range
 
-bool ConvertFPSLimitBase::float_to_frac(float input, unsigned& num, unsigned& den)
+bool ConvertFPSLimitBase::float_to_frac(float input, uint32_t& num, uint32_t& den)
 {
-	union { float f; unsigned i; } value{};
+	union { float f; uint32_t i; } value{};
 	uint32_t mantissa;
 	int exponent;
 
@@ -161,7 +158,7 @@ bool ConvertFPSLimitBase::float_to_frac(float input, unsigned& num, unsigned& de
 // rational pair is then returned. The algorithm is modified
 // from Wikipedia, Continued Fractions.
 
-bool ConvertFPSLimitBase::reduce_float(float value, unsigned& num, unsigned& den)
+bool ConvertFPSLimitBase::reduce_float(float value, uint32_t& num, uint32_t& den)
 {
 	if (float_to_frac(value, num, den)) {
 		return true;

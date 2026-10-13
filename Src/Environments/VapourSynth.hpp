@@ -1,7 +1,6 @@
 #pragma once
-#include "../VapourSynth/VapourSynth.h"
+#include <VapourSynth4.h>
 #include "Common.h"
-#include "../VapourSynth/VSHelper.h"
 #include <string>
 #include <stdexcept>
 
@@ -28,7 +27,7 @@ struct VpyEnvironment : public ICommonEnvironment
 	{
 		if (Out)
 		{
-			Api->setError(Out, message);
+			Api->mapSetError(Out, message);
 		}
 		else if (FrameCtx)
 		{
@@ -42,24 +41,30 @@ struct VpyEnvironment : public ICommonEnvironment
 
 	void MakeWritable(ICommonFrame& frame)
 	{
-		auto Copy = Api->copyFrame(static_cast<VSFrameRef*>(frame.Ref), Core);
-		Api->freeFrame((VSFrameRef*)frame.Ref);
+		auto Copy = Api->copyFrame((VSFrame*)frame.Ref, Core);
+		Api->freeFrame((VSFrame*)frame.Ref);
 		frame.Ref = Copy;
 	}
 
-VSNodeRef* InvokeClip(const char* ns, const char* func, VSMap* args, VSNodeRef* input)
+VSNode* InvokeClip(const char* ns, const char* func, VSMap* args, VSNode* input)
 {
-	VSNodeRef* Result = nullptr;
-	auto Plugin = Api->getPluginByNs(ns, Core);
+	VSNode* Result = nullptr;
+	auto Plugin = Api->getPluginByNamespace(ns, Core);
+	if (!Plugin)
+	{
+		Api->freeNode(input);
+		ThrowError("required plugin namespace '%s' is not available", ns);
+		return nullptr;
+	}
 	auto ret = Api->invoke(Plugin, func, args);
 	Api->freeNode(input);
-	if (Api->getError(ret))
+	if (Api->mapGetError(ret))
 	{
-		ThrowError(Api->getError(ret));
+		ThrowError("%s", Api->mapGetError(ret));
 	}
 	else
 	{
-		Result = Api->propGetNode(ret, "clip", 0, NULL);
+		Result = Api->mapGetNode(ret, "clip", 0, nullptr);
 	}
 	Api->freeMap(ret);
 	return Result;
@@ -70,20 +75,20 @@ struct VpyVideo : ICommonVideo
 {
 	const VSVideoInfo* VInfo;
 
-	VpyVideo(VSNodeRef* _video, const VSAPI* _api) :
+	VpyVideo(VSNode* _video, const VSAPI* _api) :
 		ICommonVideo(_video),
 		VInfo(_video ? _api->getVideoInfo(_video) : nullptr)
 	{
 	}
 
-	int FpsNum()
+	int64_t FpsNum()
 	{
-		return (int)VInfo->fpsNum;
+		return VInfo->fpsNum;
 	}
 
-	int FpsDen()
+	int64_t FpsDen()
 	{
-		return (int)VInfo->fpsDen;
+		return VInfo->fpsDen;
 	}
 
 	int Height()
@@ -103,61 +108,61 @@ struct VpyVideo : ICommonVideo
 
 	int NumPlanes()
 	{
-		return VInfo->format->numPlanes;
+		return VInfo->format.numPlanes;
 	}
 
 	int BitsPerSample()
 	{
-		return VInfo->format->bitsPerSample;
+		return VInfo->format.bitsPerSample;
 	}
 
 	bool IsPlanar()
 	{
-		return VInfo->format->numPlanes > 0;
+		return VInfo->format.numPlanes > 0;
 	}
 
 	bool IsY()
 	{
-		return VInfo->format->colorFamily == cmGray;
+		return VInfo->format.colorFamily == cfGray;
 	}
 
 	bool IsYUV()
 	{
-		return VInfo->format->colorFamily == cmYUV;
+		return VInfo->format.colorFamily == cfYUV;
 	}
 
 	bool IsRGB()
 	{
-		return VInfo->format->colorFamily == cmRGB;
+		return VInfo->format.colorFamily == cfRGB;
 	}
 
 	bool IsYUY2()
 	{
-		return VInfo->format->id == pfCompatYUY2;
+		return false;
 	}
 
 	bool HasAlpha()
 	{
-		return VInfo->format->numPlanes == 4 || VInfo->format->id == pfCompatBGR32;
+		return VInfo->format.numPlanes == 4;
 	}
 };
 
 struct VpyFrame : public ICommonFrame
 {
 	const VSAPI* Api;
-	VSFrameRef* Frame() const
+	VSFrame* Frame() const
 	{
-		return (VSFrameRef*)Ref;
+		return (VSFrame*)Ref;
 	}
 
-	VpyFrame(VSFrameRef* _frame, const VSAPI* _api) :
+	VpyFrame(VSFrame* _frame, const VSAPI* _api) :
 		ICommonFrame(_frame),
 		Api(_api)
 	{
 	}
 
-	VpyFrame(const VSFrameRef* _frame, const VSAPI* _api) :
-		ICommonFrame((VSFrameRef*)_frame),
+	VpyFrame(const VSFrame* _frame, const VSAPI* _api) :
+		ICommonFrame(const_cast<VSFrame*>(_frame)),
 		Api(_api)
 	{
 	}
@@ -189,12 +194,12 @@ struct VpyFrame : public ICommonFrame
 
 	int BitsPerSample() const
 	{
-		return Api->getFrameFormat(Frame())->bitsPerSample;
+		return Api->getVideoFrameFormat(Frame())->bitsPerSample;
 	}
 
 	int BytesPerSample() const
 	{
-		return Api->getFrameFormat(Frame())->bytesPerSample;
+		return Api->getVideoFrameFormat(Frame())->bytesPerSample;
 	}
 
 	BYTE* GetWritePtr(int plane = 0) const

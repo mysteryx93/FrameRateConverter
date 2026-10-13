@@ -1,5 +1,4 @@
-#include "VapourSynth.h"
-#include "VSHelper.h"
+#include <VapourSynth4.h>
 #include "StripeMaskVpy.h"
 #include "ContinuousMaskVpy.h"
 #include "ConvertFpsLimitVpy.h"
@@ -7,20 +6,21 @@
 
 static void VS_CC FrcVersionCreate(const VSMap *, VSMap *out, void *, VSCore *, const VSAPI *vsapi)
 {
-	vsapi->propSetData(out, "version", FRC_VERSION_STRING, -1, paReplace);
+	vsapi->mapSetData(out, "version", FRC_VERSION_STRING, -1, dtUtf8, maReplace);
 }
 
-VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegisterFunction registerFunc, VSPlugin *plugin)
+VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI *vspapi)
 {
-	configFunc("com.vapoursynth.frc", "frc", "Frame Rate Converter " FRC_VERSION_STRING, VAPOURSYNTH_API_VERSION, 1, plugin);
-	registerFunc("Version", "", FrcVersionCreate, 0, plugin);
-	registerFunc("ContinuousMask",
-		"clip:clip;"
+	vspapi->configPlugin("com.vapoursynth.frc", "frc", "Frame Rate Converter " FRC_VERSION_STRING,
+		VS_MAKE_VERSION(2, 1), VAPOURSYNTH_API_VERSION, 0, plugin);
+	vspapi->registerFunction("Version", "", "version:data;", FrcVersionCreate, nullptr, plugin);
+	vspapi->registerFunction("ContinuousMask",
+		"clip:vnode;"
 		"radius:int:opt;"
 		"thr:int:opt;",
-		ContinuousMaskVpy::Create, 0, plugin);
-	registerFunc("StripeMaskPass", 
-		"clip:clip;"
+		"clip:vnode;", ContinuousMaskVpy::Create, nullptr, plugin);
+	vspapi->registerFunction("StripeMaskPass",
+		"clip:vnode;"
 		"blksize:int:opt;"
 		"blksizev:int:opt;"
 		"overlap:int:opt;"
@@ -31,15 +31,16 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
 		"comp:int:opt;"
 		"compv:int:opt;"
 		"str:int:opt;"
+		"fullrange:int:opt;"
 		"lines:int:opt;",
-		StripeMaskVpy::Create, 0, plugin);
-	registerFunc("ConvertFpsLimit",
-		"clip:clip;"
+		"clip:vnode;", StripeMaskVpy::Create, nullptr, plugin);
+	vspapi->registerFunction("ConvertFpsLimit",
+		"clip:vnode;"
 		"num:int:opt;"
 		"den:int:opt;"
 		"fps:float:opt;"
 		"preset:data:opt;"
-		"match:clip:opt;"
+		"match:vnode:opt;"
 		"ratio:int:opt;",
-		ConvertFpsLimitVpy::Create, 0, plugin);
+		"clip:vnode;", ConvertFpsLimitVpy::Create, nullptr, plugin);
 }

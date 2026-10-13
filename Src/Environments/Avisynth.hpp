@@ -33,12 +33,12 @@ struct AvsVideo : public ICommonVideo
 	{
 	}
 
-	int FpsNum()
+	int64_t FpsNum()
 	{
 		return VInfo.fps_numerator;
 	}
 
-	int FpsDen()
+	int64_t FpsDen()
 	{
 		return VInfo.fps_denominator;
 	}
@@ -159,7 +159,7 @@ struct AvsFrame : public ICommonFrame
 
 	int BytesPerSample() const
 	{
-		return VInfo.BitsPerComponent();
+		return VInfo.ComponentSize();
 	}
 
 	BYTE* GetWritePtr(int plane = 0) const

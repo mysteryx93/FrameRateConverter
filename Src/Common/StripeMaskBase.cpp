@@ -1,5 +1,6 @@
 #include "StripeMaskBase.h"
 #include <algorithm>
+#include <vector>
 
 const char* StripeMaskBase::PluginName = "StripeMaskPass";
 
@@ -17,7 +18,7 @@ StripeMaskBase::StripeMaskBase(ICommonVideo* _child, const ICommonEnvironment& e
 	if (blksizev != 0 && (overlapv < 0 || overlapv >= blksizev))
 		env.ThrowError("overlapv must be smaller than blksizev");
 	if (thr < 0 || thr > 255)
-		env.ThrowError("Trh must be between 0 and 255");
+		env.ThrowError("thr must be between 0 and 255");
 	if (comp < 2 || comp > 5)
 		env.ThrowError("Comp must be between 2 and 5");
 	if (compv < 2 || compv > 5)
@@ -31,10 +32,6 @@ StripeMaskBase::StripeMaskBase(ICommonVideo* _child, const ICommonEnvironment& e
 
 StripeMaskBase::~StripeMaskBase()
 {
-	if (source)
-	{
-		delete source;
-	}
 }
 
 void StripeMaskBase::ProcessFrame(const ICommonFrame& src, const ICommonFrame& dst, const ICommonEnvironment& env)
@@ -49,26 +46,20 @@ void StripeMaskBase::ProcessFrame(const ICommonFrame& src, const ICommonFrame& d
 	const int dstPitch = dst.GetStride();
 	memset(dstp, 0, static_cast<size_t>(dstPitch) * height);
 
-	// Create memory buffers.
-	BYTE* LineAvgH = new BYTE[width];
-	BYTE* LineAvgV = new BYTE[height]; // may need to size mod 16
-	PatternStep* HistoryH = new PatternStep[width + 2]; // +2 to store initial data to compare to
-	PatternStep* HistoryV = new PatternStep[height + 2];
+	std::vector<BYTE> lineAvgH(width);
+	std::vector<BYTE> lineAvgV(height);
+	std::vector<PatternStep> historyH(width + 2); // +2 for the initial comparison entries
+	std::vector<PatternStep> historyV(height + 2);
 
 	// Calculte current frame.
 	if (blksize > 0)
 	{
-		CalcFrame(srcp, srcPitch, dstp, dstPitch, LineAvgH, HistoryH, str, false);
+		CalcFrame(srcp, srcPitch, dstp, dstPitch, lineAvgH.data(), historyH.data(), str, false);
 	}
 	if (blksizev > 0)
 	{
-		CalcFrame(srcp, srcPitch, dstp, dstPitch, LineAvgV, HistoryV, str, true);
+		CalcFrame(srcp, srcPitch, dstp, dstPitch, lineAvgV.data(), historyV.data(), str, true);
 	}
-
-	delete[] LineAvgH;
-	delete[] LineAvgV;
-	delete[] HistoryH;
-	delete[] HistoryV;
 }
 
 void StripeMaskBase::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dstPitch, BYTE* lineAvg, PatternStep* history, BYTE strength, bool vertical)
@@ -77,6 +68,10 @@ void StripeMaskBase::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dst
 	int over = !vertical ? overlap : overlapv;
 	int width = !vertical ? source->Width() : source->Height();
 	int height = !vertical ? source->Height() : source->Width();
+	// A legal block may still exceed a small frame dimension. Use the whole
+	// dimension as one band instead of moving the source pointer before frame 0.
+	blk = std::min(blk, height);
+	over = std::min(over, blk - 1);
 	int compBck = (!vertical ? comp : compv) / 2;
 	int compFwd = ((!vertical ? comp : compv) - 1) / 2;
 
@@ -88,7 +83,7 @@ void StripeMaskBase::CalcFrame(const BYTE* src, int srcPitch, BYTE* dst, int dst
 			i = height - blk;
 		}
 		CalcBandAvg(src + (!vertical ? srcPitch * i : i), srcPitch, width, lineAvg, blk, vertical);
-		CalcBand(dst + (!vertical ? dstPitch * i : i), dstPitch, width, lineAvg, history, blk, strength, vertical, compBck, compFwd);
+		CalcBand(dst + (!vertical ? dstPitch * i : i), dstPitch, width, lineAvg, history, blk, strength, vertical, compFwd, compBck);
 		i += blk - over;
 	}
 }
@@ -142,7 +137,6 @@ void StripeMaskBase::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, 
 	int PatternStart = -1;
 	int PatternEnd = -1;
 	int PatternLength = 0; // 0=no pattern, 2=single-stripe pattern, 4=double-stripe pattern
-	int PatternCont = 0;
 
 	for (int i = 0; i < size; i++)
 	{
@@ -182,22 +176,14 @@ void StripeMaskBase::CalcBand(BYTE* dst, int dstPitch, int size, BYTE* lineAvg, 
 						PatternStart = history[std::max(0, hLength - PatternLength * 2 - 2)].Pos;
 					}
 				}
-				else if (PatternLength > 0)
+				else if (PatternLength > 0 && !CompareHistory(history, hLength, PatternLength, blk))
 				{
 					// Once pattern is detected, detect when pattern breaks.
-					if (CompareHistory(history, hLength, PatternLength, blk))
+					PatternEnd = history[hLength - 3].Pos;
+					PatternLength = 0;
+					if (hLength > 6) // if hLength=6, 0-1 is blank, 2-3 is 'pattern start' and 4-5 is pattern break.
 					{
-						PatternCont += 2;
-					}
-					else
-					{
-						PatternEnd = history[hLength - 3].Pos;
-						PatternLength = 0;
-						PatternCont = 0;
-						if (hLength > 6) // if hLength=6, 0-1 is blank, 2-3 is 'pattern start' and 4-5 is pattern break.
-						{
-							MarkArea(dst, dstPitch, PatternStart, PatternEnd, strength, blk, vertical);
-						}
+						MarkArea(dst, dstPitch, PatternStart, PatternEnd, strength, blk, vertical);
 					}
 				}
 				// If 2 full blocks are continuous white, mark it.

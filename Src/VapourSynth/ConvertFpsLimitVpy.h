@@ -14,11 +14,10 @@ public:
 	static void VS_CC CreatePreset(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api);
 	static void VS_CC CreateFromClip(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api);
 
-	ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNodeRef* node, VSCore* core, const VSAPI* vsapi, int new_numerator, int new_denominator, int _ratio);
+	ConvertFpsLimitVpy(const VSMap* in, VSMap* out, VSNode* node, VSCore* core, const VSAPI* vsapi, uint32_t new_numerator, uint32_t new_denominator, int _ratio);
 	~ConvertFpsLimitVpy() {}
-	void Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env) override;
-	VSFrameRef* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env) override;
+	const VSFrame* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env) override;
 	void Free() override;
 };
 
-unsigned int gcd(unsigned int u, unsigned int v);
+uint32_t gcd(uint32_t u, uint32_t v);

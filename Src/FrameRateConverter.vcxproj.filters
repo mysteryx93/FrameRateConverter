@@ -87,15 +87,6 @@
     <ClInclude Include="Avisynth\cpufeatures.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="VapourSynth\VapourSynth.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VapourSynth\VSHelper.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VapourSynth\VSScript.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Environments\instrset_detect.h">
       <Filter>Environments</Filter>
     </ClInclude>

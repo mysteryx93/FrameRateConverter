@@ -9,7 +9,7 @@ class ConvertFPSLimitBase
 {
 public:
 	static const char* PluginName;
-	ConvertFPSLimitBase(ICommonVideo* _child, const ICommonEnvironment& env, int new_numerator, int new_denominator, int _ratio);
+	ConvertFPSLimitBase(ICommonVideo* _child, const ICommonEnvironment& env, uint32_t new_numerator, uint32_t new_denominator, int _ratio);
 	const ICommonFrame& ProcessFrame(int n, const ICommonFrame& src, const ICommonFrame& srcNext, const ICommonEnvironment& env);
 
 protected:
@@ -18,8 +18,8 @@ protected:
 	int ratio;
 
 private:
-	static bool float_to_frac(float input, unsigned& num, unsigned& den);
-	static bool reduce_float(float value, unsigned& num, unsigned& den);
+	static bool float_to_frac(float input, uint32_t& num, uint32_t& den);
+	static bool reduce_float(float value, uint32_t& num, uint32_t& den);
 	static void reduce_frac(uint32_t& num, uint32_t& den, uint32_t limit);
 public:
 	static void FloatToFPS(float n, uint32_t& num, uint32_t& den, const ICommonEnvironment& env);

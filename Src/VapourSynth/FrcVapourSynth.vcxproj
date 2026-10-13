@@ -159,9 +159,7 @@
     <ClInclude Include="..\Common\merge.h" />
     <ClInclude Include="..\Common\merge_avx2.h" />
     <ClInclude Include="..\Common\StripeMask.h" />
-    <ClInclude Include="VapourSynth.h" />
-    <ClInclude Include="VSHelper.h" />
-    <ClInclude Include="VSScript.h" />
+
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\ContinuousMask.cpp" />

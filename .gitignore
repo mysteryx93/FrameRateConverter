@@ -4,6 +4,8 @@ Release/
 .vs/
 .idea/
 build/
+deps/
+__pycache__/
 
 *.db
 *.opendb

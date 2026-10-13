@@ -5,10 +5,9 @@
 class StripeMaskVpy : public VpyFilter, StripeMaskBase {
 public:
 	static void VS_CC Create(const VSMap* in, VSMap* out, void* userData, VSCore* core, const VSAPI* api);
-	StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNodeRef* node,
+	StripeMaskVpy(const VSMap* in, VSMap* out, VSCore* core, const VSAPI* api, VSNode* node,
 		int _blksize, int _blksizev, int _overlap, int _overlapv, int _thr, int _comp, int _compv, int _str, bool _lines);
 	~StripeMaskVpy() {}
-	void Init(VSMap* in, VSMap* out, VSNode* node, VpyEnvironment& env) override;
-	VSFrameRef* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env) override;
+	const VSFrame* GetFrame(int n, int activationReason, void** frameData, VSFrameContext* frameCtx, VpyEnvironment& env) override;
 	void Free() override;
 };

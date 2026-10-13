@@ -57,15 +57,7 @@
     <ClInclude Include="..\Common\StripeMask.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="VapourSynth.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VSHelper.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VSScript.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
+
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\ContinuousMask.cpp">

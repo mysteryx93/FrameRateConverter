@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <cstdint>
 
 #ifdef _MSC_VER
 #pragma warning(disable:26812)
@@ -18,8 +19,8 @@ struct ICommonVideo
 	{
 	}
 	virtual ~ICommonVideo() {};
-	virtual int FpsNum() = 0;
-	virtual int FpsDen() = 0;
+	virtual int64_t FpsNum() = 0;
+	virtual int64_t FpsDen() = 0;
 	virtual int Height() = 0;
 	virtual int Width() = 0;
 	virtual int NumFrames() = 0;

@@ -1,6 +1,6 @@
 #include "ConvertFpsLimitAvs.h"
 
-ConvertFpsLimitAvs::ConvertFpsLimitAvs(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env) :
+ConvertFpsLimitAvs::ConvertFpsLimitAvs(PClip _child, uint32_t new_numerator, uint32_t new_denominator, int _ratio, IScriptEnvironment* env) :
 	GenericVideoFilter(_child),
 	ConvertFPSLimitBase(new AvsVideo(_child), AvsEnvironment(PluginName, env), new_numerator, new_denominator, _ratio)
 {

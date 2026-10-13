@@ -12,6 +12,7 @@ SRC   := Src
 BUILD := build
 
 AVS_CFLAGS := $(shell pkg-config --cflags avisynth)
+VS_CFLAGS  := $(shell pkg-config --cflags vapoursynth)
 
 # Do not add Src/Avisynth to the include path: quoted includes from
 # those .cpp files already find siblings, and <avisynth.h> must resolve
@@ -69,7 +70,7 @@ $(AVS_SO): $(AVS_SRCS) $(AVX2_OBJ) $(VERSION_H)
 
 $(VS_SO): $(VS_SRCS) $(AVX2_OBJ) $(VERSION_H)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -shared -o $@ $(VS_SRCS) $(AVX2_OBJ)
+	$(CXX) $(CXXFLAGS) $(VS_CFLAGS) $(INCLUDES) -shared -o $@ $(VS_SRCS) $(AVX2_OBJ)
 
 clean:
 	rm -rf $(BUILD)

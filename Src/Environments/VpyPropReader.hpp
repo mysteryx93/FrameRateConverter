@@ -10,45 +10,50 @@ public:
     {
     }
 
+    bool Has(const char* key) const
+    {
+        return api->mapNumElements(map, key) >= 0;
+    }
+
     int64_t GetInt(const char* key, int64_t def = 0)
     {
         int err;
-        auto result = api->propGetInt(map, key, 0, &err);
+        auto result = api->mapGetInt(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 
     double GetFloat(const char* key, double def = 0)
     {
         int err;
-        auto result = api->propGetFloat(map, key, 0, &err);
+        auto result = api->mapGetFloat(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 
-    VSNodeRef* GetNode(const char* key, VSNodeRef* def = nullptr)
+    VSNode* GetNode(const char* key, VSNode* def = nullptr)
     {
         int err;
-        auto result = api->propGetNode(map, key, 0, &err);
+        auto result = api->mapGetNode(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 
-    const VSFrameRef* GetFrame(const char* key, const VSFrameRef* def = nullptr)
+    const VSFrame* GetFrame(const char* key, const VSFrame* def = nullptr)
     {
         int err;
-        auto result = api->propGetFrame(map, key, 0, &err);
+        auto result = api->mapGetFrame(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 
-    VSFuncRef* GetFunc(const char* key, VSFuncRef* def = nullptr)
+    VSFunction* GetFunc(const char* key, VSFunction* def = nullptr)
     {
         int err;
-        auto result = api->propGetFunc(map, key, 0, &err);
+        auto result = api->mapGetFunction(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 
     const char* GetData(const char* key, const char* def = nullptr)
     {
         int err;
-        auto result = api->propGetData(map, key, 0, &err);
+        auto result = api->mapGetData(map, key, 0, &err);
         return GetResult(result, def, err);
     }
 

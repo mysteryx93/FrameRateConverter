@@ -8,7 +8,7 @@ class ConvertFpsLimitAvs: public GenericVideoFilter, public ConvertFPSLimitBase
 	 **/
 {
 public:
-	ConvertFpsLimitAvs(PClip _child, unsigned new_numerator, unsigned new_denominator, int _ratio, IScriptEnvironment* env);
+	ConvertFpsLimitAvs(PClip _child, uint32_t new_numerator, uint32_t new_denominator, int _ratio, IScriptEnvironment* env);
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment* env);
 	bool __stdcall GetParity(int n);
 

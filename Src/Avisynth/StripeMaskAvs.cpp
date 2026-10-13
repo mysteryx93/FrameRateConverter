@@ -29,11 +29,12 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	int BitDepth = input->GetVideoInfo().BitsPerComponent();
 
 	// Convert input to 8-bit; nothing to gain in processing at higher bit-depth.
+	// Preserve TV vs PC range (same as ConvertBits fulls=fulld=FullRange).
 	if (BitDepth > 8)
 	{
-		AVSValue sargs[2] = { input, 8 };
-		const char* nargs[2] = { 0, 0 };
-		input = env->Invoke("ConvertBits", AVSValue(sargs, 2), nargs).AsClip();
+		AVSValue sargs[4] = { input, 8, FullRange != 0, FullRange != 0 };
+		const char* nargs[4] = { 0, 0, "fulls", "fulld" };
+		input = env->Invoke("ConvertBits", AVSValue(sargs, 4), nargs).AsClip();
 	}
 
 	// Convert to Y
@@ -42,14 +43,6 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 		const char* nargs[1] = { 0 };
 		input = env->Invoke("ConvertToY", AVSValue(sargs, 1), nargs).AsClip();
 	}
-
-	// Convert to Full levels.
-	//if (!FullRange)
-	//{
-	//	AVSValue sargs[2] = { input, "TV->PC" };
-	//	const char* nargs[2] = { 0, "levels" };
-	//	input = env->Invoke("ColorYUV", AVSValue(sargs, 2), nargs).AsClip();
-	//}
 
 	// Convert range and apply gamma.
 	{

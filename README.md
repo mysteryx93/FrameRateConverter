@@ -113,6 +113,21 @@ StripeMask(C, BlkSize, BlkSizeV, Overlap, OverlapV, Thr, Comp, CompV, Str, StrF,
 
 
 
+## ContinuousMask
+
+Keeps mask marks that continue along a row or a column, and lets isolated specks fall away. FrameRateConverter runs this on the reduced stripe mask before binarizing it.
+
+For each pixel above Thr, the pixel is replaced by the average of the pixels within Radius to the left, right, above, and below. Pixels at or below Thr stay black. A lone mark is averaged down with the empty neighbors. A mark that continues along the line stays bright.
+
+ContinuousMask(clip, Radius, Thr)
+
+@ Radius   - How far to average in each of the four directions. Must be above 1. (default = 16)
+
+@ Thr      - Pixels at or below this value are left black, between 0 and 255. (default = 0)
+
+
+
+
 ## ConvertFpsLimit
 
 Same as ConvertFps but with an extra parameter:

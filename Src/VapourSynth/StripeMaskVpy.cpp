@@ -8,8 +8,8 @@ void VS_CC StripeMaskVpy::Create(const VSMap* in, VSMap* out, void* userData, VS
 	int BlkSizeV = prop.GetInt("blksizev", BlkSize > 0 ? BlkSize : 16);
 	int Overlap = prop.GetInt("overlap", BlkSize / 4);
 	int OverlapV = prop.GetInt("overlapv", BlkSizeV / 4);
-	int Thr = prop.GetInt("thr", 15);
-	int Range = prop.GetInt("range", 125);
+	int Thr = prop.GetInt("thr", 26);
+	int Range = prop.GetInt("range", 255);
 	double Gamma = prop.GetFloat("gamma", 2.2);
 	int Comp = prop.GetInt("comp", BlkSize <= 16 ? 2 : 3);
 	int CompV = prop.GetInt("compv", Comp);

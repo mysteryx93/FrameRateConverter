@@ -7,7 +7,7 @@ AVSValue __cdecl StripeMaskAvs::Create(AVSValue args, void* user_data, IScriptEn
 	int BlkSizeV = args[2].AsInt(BlkSize > 0 ? BlkSize : 16);
 	int Overlap = args[3].AsInt(BlkSize / 4);
 	int OverlapV = args[4].AsInt(BlkSizeV / 4);
-	int Thr = args[5].AsInt(28);
+	int Thr = args[5].AsInt(26);
 	int Range = args[6].AsInt(255);
 	double Gamma = args[7].AsFloat(2.2);
 	int Comp = args[8].AsInt(BlkSize <= 16 ? 2 : 3);
